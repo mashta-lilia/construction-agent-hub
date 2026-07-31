@@ -21,12 +21,16 @@ class RedisInfo(ConfigFactory):
     HOST: str
     PORT: int
     PASSWORD: Optional[str]
-    DB: Optional[int] = 0
+    DB: int = 0
 
 
 class ConfInfo(ConfigFactory):
     __prefix__ = "CONF_"
     ORIGINS: list[str] = ["http://localhost"]
+    # Drives Tortoise's dev-only schema auto-generation (see app/core and
+    # main.py). Defaults to False so staging/prod fail closed — local dev
+    # opts in explicitly via CONF_DEBUG=true.
+    DEBUG: bool = False
 
 
 class SecurityInfo(ConfigFactory):
@@ -77,7 +81,9 @@ class Config:
         for attr_name, factory_cls in Config.__annotations__.items():
             params.append(f"# {attr_name}")
             if not hasattr(factory_cls, "__prefix__"):
-                setattr(factory_cls, "__prefix__", Config.__qualname__)
+                # Mirror ConfigFactory.__init__'s own fallback: the factory's
+                # own qualname, not Config's.
+                factory_cls.__prefix__ = factory_cls.__qualname__
             for var_name in factory_cls.__annotations__.keys():
                 params.append(f"{factory_cls.__prefix__ + var_name}=")
         with open(".env.example", "w") as file:
