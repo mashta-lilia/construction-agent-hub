@@ -1,6 +1,4 @@
-from arq.connections import RedisSettings
-
-from app.core import CONFIG
+from app.core import arq_redis_settings
 
 
 async def startup(ctx: dict) -> None:
@@ -28,9 +26,4 @@ class WorkerSettings:
     functions = [noop]
     on_startup = startup
     on_shutdown = shutdown
-    redis_settings = RedisSettings(
-        host=CONFIG.redis.HOST,
-        port=CONFIG.redis.PORT,
-        database=CONFIG.redis.DB or 0,
-        password=CONFIG.redis.PASSWORD,
-    )
+    redis_settings = arq_redis_settings()

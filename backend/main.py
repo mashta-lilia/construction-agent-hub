@@ -12,7 +12,11 @@ from app.routers import health_router, routers
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    async with RegisterTortoise(config=TORTOISE_ORM, generate_schemas=DEBUG)(app):
+    # `app` goes through the constructor, not `RegisterTortoise(...)(app)` —
+    # RegisterTortoise.__call__ discards its arguments and returns self, so
+    # the callable form never binds the app and leaves
+    # `app.state._tortoise_context` unset.
+    async with RegisterTortoise(app, config=TORTOISE_ORM, generate_schemas=DEBUG):
         yield
 
 
