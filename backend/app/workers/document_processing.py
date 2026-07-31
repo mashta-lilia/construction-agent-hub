@@ -2,7 +2,7 @@ from typing import ClassVar
 
 from arq.connections import RedisSettings
 
-from app.core.config import settings
+from app.core import CONFIG
 
 
 async def startup(ctx: dict) -> None:
@@ -30,4 +30,9 @@ class WorkerSettings:
     functions: ClassVar = [noop]
     on_startup = startup
     on_shutdown = shutdown
-    redis_settings = RedisSettings.from_dsn(settings.redis_url)
+    redis_settings = RedisSettings(
+        host=CONFIG.redis.HOST,
+        port=CONFIG.redis.PORT,
+        database=CONFIG.redis.DB or 0,
+        password=CONFIG.redis.PASSWORD,
+    )
