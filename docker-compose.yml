@@ -46,6 +46,9 @@ services:
     environment:
       <<: *backend-env
       CONF_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost}
+      # Defaults to false: schema auto-generation must be opted into
+      # explicitly, never inherited silently by a staging/prod deploy.
+      CONF_DEBUG: ${BACKEND_DEBUG:-false}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       SMTP_HOST: ${SMTP_HOST}

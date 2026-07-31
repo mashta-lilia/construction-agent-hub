@@ -20,22 +20,25 @@ class ConfigFactory(ABC):
             else:
                 base_type = var_type
             if env_value == "":
+                if var_name in type(self).__dict__:
+                    # A class-level default (e.g. `PORT: int = 587`) already
+                    # applies via normal attribute lookup — leave it alone.
+                    # Checked before `is_optional` on purpose: an optional
+                    # field WITH a default (`DB: Optional[int] = 0`) must keep
+                    # that default rather than be overwritten with None.
+                    continue
                 if is_optional:
                     setattr(self, var_name, None)
-                    continue
-                if var_name in type(self).__dict__:
-                    # a class-level default (e.g. `PORT: int = 587`) already
-                    # applies via normal attribute lookup — leave it alone.
                     continue
                 raise NoParameterError(
                     f"Environment variable '{self.__prefix__ + var_name}' not set"
                 )
             try:
                 setattr(self, var_name, self._cast_value(env_value, base_type))
-            except ValueError:
+            except ValueError as exc:
                 raise InvalidEnvironmentError(
                     f"Environment variable '{self.__prefix__ + var_name}' has an invalid value"
-                )
+                ) from exc
 
     def _cast_value(self, value: str, var_type: type):
         if var_type is str:
