@@ -1,0 +1,8 @@
+.rehub-app {
+  max-width: var(--rehub-content-max);
+}
+
+.rehub-brand__mark {
+  width: 2.5rem;
+  height: 2.5rem;
+}

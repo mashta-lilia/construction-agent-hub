@@ -1,0 +1,6 @@
+.rehub-empty-state__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-secondary-color);
+}
