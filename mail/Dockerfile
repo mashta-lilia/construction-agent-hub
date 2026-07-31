@@ -3,7 +3,7 @@
 # ticket. This Dockerfile proves the service builds and starts; real
 # per-project mailbox setup (S2-DOCKER-01's mail/ deliverable is
 # infrastructure, not mail logic) is out of scope here.
-FROM ghcr.io/docker-mailserver/docker-mailserver:latest
+FROM ghcr.io/docker-mailserver/docker-mailserver:latest@sha256:af51b15dd3fc72153c0e90eb7692bb5e3a463212d87959a80fa7aa89b617d44a
 
 # config/postfix-accounts.cf seeds ONE dummy account (placeholder@reconstruction-hub.local,
 # password "placeholder-change-me") — without at least one account, Dovecot
