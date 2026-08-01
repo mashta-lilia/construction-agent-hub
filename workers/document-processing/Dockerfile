@@ -22,4 +22,4 @@ RUN useradd --create-home --uid 10001 appuser \
     && chown -R appuser:appuser /app
 USER appuser
 
-CMD ["uv", "run", "arq", "app.workers.document_processing.WorkerSettings"]
+CMD ["uv", "run", "--no-sync", "arq", "app.workers.document_processing.WorkerSettings"]
