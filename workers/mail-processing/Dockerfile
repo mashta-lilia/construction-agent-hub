@@ -16,4 +16,10 @@ RUN uv sync --frozen --no-install-project --no-dev
 COPY backend/ .
 RUN uv sync --frozen --no-dev
 
+# Run as a dedicated unprivileged user rather than root. Owns /app so `uv run`
+# can use the already-synced .venv, and has a home dir for uv's cache.
+RUN useradd --create-home --uid 10001 appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 CMD ["uv", "run", "arq", "app.workers.mail_processing.WorkerSettings"]

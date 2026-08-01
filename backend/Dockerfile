@@ -14,6 +14,12 @@ RUN uv sync --frozen --no-install-project --no-dev
 COPY . .
 RUN uv sync --frozen --no-dev
 
+# Run as a dedicated unprivileged user rather than root. Owns /app so `uv run`
+# can use the already-synced .venv, and has a home dir for uv's cache.
+RUN useradd --create-home --uid 10001 appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
 
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 \

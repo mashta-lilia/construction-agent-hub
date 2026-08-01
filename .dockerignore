@@ -6,3 +6,16 @@ frontend/node_modules
 frontend/dist
 **/__pycache__
 **/.venv
+
+# Client data — mirrors .gitignore (CLAUDE.md §10). The workers build from the
+# repo root, so without these an untracked local document would be copied into
+# the build context and baked into the image.
+# NOTE: unlike .gitignore, .dockerignore patterns are matched against the path
+# relative to the context root — a bare `*.pdf` would only match the top level,
+# not backend/foo.pdf. Hence the explicit `**/` prefixes.
+**/*.pdf
+**/*.xlsx
+**/*.dwg
+**/data/
+**/datasets/
+**/uploads/
