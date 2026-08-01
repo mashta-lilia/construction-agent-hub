@@ -1,3 +1,4 @@
+import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -16,15 +17,19 @@ class _FakeConnection:
 
 
 @pytest.mark.parametrize(
-    ("db_fails", "redis_fails", "expected_status", "expected_body_status"),
+    ("db_fails", "redis_fails", "expected_status", "expected_body_status", "expected_checks"),
     [
-        (False, False, 200, "ok"),
-        (True, False, 503, "error"),
-        (False, True, 503, "error"),
+        (False, False, 200, "ok", {"database": "ok", "redis": "ok"}),
+        (True, False, 503, "error", {"database": "error", "redis": "ok"}),
+        (False, True, 503, "error", {"database": "ok", "redis": "error"}),
     ],
 )
 async def test_ready_reflects_dependency_health(
-    db_fails: bool, redis_fails: bool, expected_status: int, expected_body_status: str
+    db_fails: bool,
+    redis_fails: bool,
+    expected_status: int,
+    expected_body_status: str,
+    expected_checks: dict[str, str],
 ) -> None:
     fake_connection = _FakeConnection(should_fail=db_fails)
     fake_connections = type("FakeConnections", (), {"get": lambda self, _name: fake_connection})()
@@ -41,5 +46,10 @@ async def test_ready_reflects_dependency_health(
     ):
         response = await ready()
 
+    # Assert the documented JSON contract, not merely that a body exists —
+    # otherwise any payload shape would satisfy this test.
     assert response.status_code == expected_status
-    assert response.body
+    assert json.loads(response.body) == {
+        "status": expected_body_status,
+        "checks": expected_checks,
+    }

@@ -43,32 +43,28 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    def _error_response(request: Request, status_code: int, code: str, message: str) -> JSONResponse:
+        """Error responses are built here, not by RequestIDMiddleware: an
+        exception makes `await call_next(request)` re-raise, so the middleware
+        never reaches the line that sets the header. Without setting it here,
+        clients get `request_id` in the body but no X-Request-ID header on
+        exactly the responses where correlation matters most.
+        """
+        request_id = getattr(request.state, "request_id", None)
+        return JSONResponse(
+            status_code=status_code,
+            content={"error": {"code": code, "message": message, "request_id": request_id}},
+            headers={"X-Request-ID": request_id} if request_id else None,
+        )
+
     @app.exception_handler(AppError)
     async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={
-                "error": {
-                    "code": exc.code,
-                    "message": exc.message,
-                    "request_id": getattr(request.state, "request_id", None),
-                }
-            },
-        )
+        return _error_response(request, exc.status_code, exc.code, exc.message)
 
     @app.exception_handler(Exception)
     async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
         structlog.get_logger().exception("unhandled_error")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": {
-                    "code": "internal_error",
-                    "message": "Internal server error",
-                    "request_id": getattr(request.state, "request_id", None),
-                }
-            },
-        )
+        return _error_response(request, 500, "internal_error", "Internal server error")
 
     app.include_router(health_router)
     for router in routers:

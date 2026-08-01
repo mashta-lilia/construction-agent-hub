@@ -28,3 +28,30 @@ def test_api_prefixed_health_is_not_mounted() -> None:
     with TestClient(app) as client:
         response = client.get("/api/health")
     assert response.status_code == 404
+
+
+def test_request_id_header_is_returned_on_success_and_errors() -> None:
+    """The header must survive the error path too: an exception makes
+    `await call_next(...)` re-raise, so RequestIDMiddleware never gets to set
+    it and the exception handler has to.
+    """
+    app.add_api_route("/__boom", _boom, methods=["GET"])
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        ok = client.get("/health")
+        assert ok.headers.get("X-Request-ID")
+
+        boom = client.get("/__boom")
+        assert boom.status_code == 500
+        assert boom.headers.get("X-Request-ID"), "500 response lost the correlation header"
+        # header and body must agree, otherwise correlation is worse than useless
+        assert boom.headers["X-Request-ID"] == boom.json()["error"]["request_id"]
+
+    # an inbound ID is honoured rather than replaced
+    with TestClient(app) as client:
+        echoed = client.get("/health", headers={"X-Request-ID": "caller-supplied-id"})
+    assert echoed.headers["X-Request-ID"] == "caller-supplied-id"
+
+
+async def _boom() -> None:
+    raise RuntimeError("kaboom")
