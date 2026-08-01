@@ -11,8 +11,13 @@ import bcrypt
 import jwt
 
 from app.core import CONFIG
+from app.utils.exceptions import ValidationAppError
 
 ALGORITHM = "HS256"
+
+# bcrypt consumes at most 72 bytes; pyca/bcrypt 5.0 raises rather than
+# truncating silently.
+MAX_PASSWORD_BYTES = 72
 
 TOKEN_TYPES: frozenset[str] = frozenset({"access", "refresh"})
 REQUIRED_CLAIMS = ["sub", "type", "iat", "exp"]
@@ -26,11 +31,35 @@ class TokenPayload(TypedDict):
 
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    """Hash a password, rejecting anything bcrypt cannot represent.
+
+    bcrypt only consumes the first 72 bytes; pyca/bcrypt 5.0 stopped
+    truncating silently and raises ValueError instead. We reject explicitly
+    rather than truncating (which would make "<72 bytes>x" and "<72 bytes>y"
+    the same password) so the caller gets a 422 rather than a 500.
+
+    Note this is a *byte* limit, so it bites earlier than users expect —
+    36 Cyrillic characters already reach 72 bytes.
+    """
+    encoded = password.encode()
+    if len(encoded) > MAX_PASSWORD_BYTES:
+        raise ValidationAppError(
+            f"password must be at most {MAX_PASSWORD_BYTES} bytes, got {len(encoded)}"
+        )
+    return bcrypt.hashpw(encoded, bcrypt.gensalt()).decode()
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    return bcrypt.checkpw(password.encode(), password_hash.encode())
+    """Returns False (rather than raising) for oversized input.
+
+    hash_password refuses to store anything over the limit, so an oversized
+    candidate cannot match any stored hash — and a login attempt must not turn
+    into a 500 just because someone posted a long string.
+    """
+    encoded = password.encode()
+    if len(encoded) > MAX_PASSWORD_BYTES:
+        return False
+    return bcrypt.checkpw(encoded, password_hash.encode())
 
 
 def create_access_token(subject: str) -> str:
