@@ -1,0 +1,42 @@
+[project]
+name = "reconstruction-hub-backend"
+version = "0.1.0"
+description = "Reconstruction Hub API and background workers"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.52.0",
+    "python-dotenv>=1.2.2",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.9.0",
+    "ruff>=0.14.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "httpx2>=2.9.1",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+# `target-version` is deliberately unset: ruff derives it from the
+# `requires-python` above, so the Python version is stated in exactly one
+# place and cannot drift.
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = false
