@@ -6,12 +6,46 @@ import pytest
 from app.core import CONFIG
 from app.core.security import (
     ALGORITHM,
+    MAX_PASSWORD_BYTES,
     create_access_token,
     create_refresh_token,
     decode_token,
     hash_password,
     verify_password,
 )
+from app.utils.exceptions import ValidationAppError
+
+
+def test_hash_password_accepts_input_at_the_bcrypt_byte_limit() -> None:
+    at_limit = "a" * MAX_PASSWORD_BYTES
+    assert verify_password(at_limit, hash_password(at_limit))
+
+
+def test_hash_password_rejects_input_over_the_bcrypt_byte_limit() -> None:
+    """bcrypt 5.0 raises on >72 bytes; surface it as a 422-shaped domain error
+    rather than letting a ValueError become a 500.
+    """
+    with pytest.raises(ValidationAppError):
+        hash_password("a" * (MAX_PASSWORD_BYTES + 1))
+
+
+def test_hash_password_counts_bytes_not_characters() -> None:
+    """36 Cyrillic characters are already 72 bytes — the limit bites earlier
+    than a naive character count suggests.
+    """
+    assert len(("м" * 36).encode()) == MAX_PASSWORD_BYTES
+
+    with pytest.raises(ValidationAppError):
+        hash_password("м" * 37)
+
+
+def test_verify_password_returns_false_for_oversized_input() -> None:
+    """Must not raise: hash_password never stores anything oversized, so an
+    oversized candidate simply cannot match — and a login attempt should not
+    become a 500 because someone posted a long string.
+    """
+    stored = hash_password("short-password")
+    assert verify_password("a" * (MAX_PASSWORD_BYTES + 1), stored) is False
 
 
 def test_hash_password_produces_a_verifiable_but_different_string() -> None:
