@@ -5,7 +5,7 @@ module only proves the stateless pieces work.
 """
 
 import time
-from typing import Literal, TypedDict
+from typing import Literal, TypedDict, cast
 
 import bcrypt
 import jwt
@@ -13,6 +13,9 @@ import jwt
 from app.core import CONFIG
 
 ALGORITHM = "HS256"
+
+TOKEN_TYPES: frozenset[str] = frozenset({"access", "refresh"})
+REQUIRED_CLAIMS = ["sub", "type", "iat", "exp"]
 
 
 class TokenPayload(TypedDict):
@@ -53,4 +56,19 @@ def create_refresh_token(subject: str) -> str:
 
 
 def decode_token(token: str) -> TokenPayload:
-    return jwt.decode(token, CONFIG.security.JWT_SECRET, algorithms=[ALGORITHM])
+    """Decode and validate a token against the TokenPayload contract.
+
+    A valid signature alone is not enough: without enforcing the claim schema
+    a token missing `sub`/`type`, or carrying an unexpected `type`, would be
+    handed back as a "TokenPayload" it does not actually satisfy.
+    """
+    payload = jwt.decode(
+        token,
+        CONFIG.security.JWT_SECRET,
+        algorithms=[ALGORITHM],
+        options={"require": REQUIRED_CLAIMS},
+    )
+    token_type = payload["type"]
+    if token_type not in TOKEN_TYPES:
+        raise jwt.InvalidTokenError(f"unsupported token type: {token_type!r}")
+    return cast(TokenPayload, payload)

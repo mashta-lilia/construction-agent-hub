@@ -54,3 +54,29 @@ def test_decode_token_rejects_expired_token() -> None:
 
     with pytest.raises(jwt.ExpiredSignatureError):
         decode_token(expired)
+
+
+def _sign(claims: dict) -> str:
+    """A correctly-signed token with arbitrary claims — the signature is never
+    the thing under test in the cases below, the claim schema is.
+    """
+    return jwt.encode(claims, CONFIG.security.JWT_SECRET, algorithm=ALGORITHM)
+
+
+@pytest.mark.parametrize("missing", ["sub", "type", "iat", "exp"])
+def test_decode_token_rejects_missing_required_claim(missing: str) -> None:
+    now = int(time.time())
+    claims = {"sub": "user-1", "type": "access", "iat": now, "exp": now + 300}
+    del claims[missing]
+
+    with pytest.raises(jwt.MissingRequiredClaimError):
+        decode_token(_sign(claims))
+
+
+@pytest.mark.parametrize("token_type", ["admin", "ACCESS", "", "id_token"])
+def test_decode_token_rejects_unsupported_token_type(token_type: str) -> None:
+    now = int(time.time())
+    token = _sign({"sub": "user-1", "type": token_type, "iat": now, "exp": now + 300})
+
+    with pytest.raises(jwt.InvalidTokenError, match="unsupported token type"):
+        decode_token(token)
