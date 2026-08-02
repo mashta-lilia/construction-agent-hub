@@ -1,0 +1,22 @@
+.rh-card {
+  background: var(--rh-bg-white);
+  border: 1px solid var(--rh-border-slate-200);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.rh-card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--rh-border-slate-100);
+}
+
+.rh-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--rh-text-slate-900);
+  margin: 0;
+}
+
+.rh-card-content {
+  padding: 1.25rem;
+}

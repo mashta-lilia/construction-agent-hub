@@ -1,0 +1,45 @@
+.rh-skeleton-block {
+  border-radius: 0.375rem;
+  background: var(--rh-bg-slate-200);
+}
+
+.rh-skeleton-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.rh-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--rh-border-slate-200);
+  border-radius: 0.5rem;
+  background: var(--rh-bg-white);
+}
+
+.rh-skeleton-row-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.rh-skeleton-row-lines {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rh-skeleton-row-line-title {
+  height: 0.875rem;
+  width: 33%;
+}
+
+.rh-skeleton-row-line-subtitle {
+  height: 0.75rem;
+  width: 66%;
+}

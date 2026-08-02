@@ -1,0 +1,30 @@
+.rh-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  border: 1px solid;
+  border-radius: 0.5rem;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+}
+
+.rh-alert-default {
+  background: var(--rh-bg-slate-50);
+  border-color: var(--rh-border-slate-200);
+  color: var(--rh-text-slate-700);
+}
+.rh-alert-red {
+  background: var(--rh-bg-red-50);
+  border-color: var(--rh-border-red-300);
+  color: var(--rh-text-red-800);
+}
+.rh-alert-amber {
+  background: var(--rh-bg-amber-50);
+  border-color: var(--rh-border-amber-300);
+  color: var(--rh-text-amber-800);
+}
+.rh-alert-green {
+  background: var(--rh-bg-emerald-50);
+  border-color: var(--rh-border-emerald-200);
+  color: var(--rh-text-emerald-800);
+}

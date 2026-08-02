@@ -1,0 +1,415 @@
+/*
+ * Shared stylesheet for the `inbox` feature (§2.1: one CSS file per
+ * feature, not per component). Covers EmailRow, EmailReaderDialog,
+ * ManualRequestModal, InboxTab, ProjectMailboxesOverview and
+ * ProjectMailboxDetail.
+ *
+ * Ported from REHUB WORK V8.html script block 5 (~lines 3100-3283) and
+ * script block 12 (~lines 4283-4356). All Tailwind utility classes from
+ * the source were translated to `--rh-*` design tokens (src/styles/tokens.css)
+ * so light/dark theming stays automatic via `html.dark`; Bootstrap utility
+ * classes (d-flex, gap-*, align-items-*, etc.) are used for plain layout,
+ * matching the convention already used by src/components/Button.
+ */
+
+/* ===== EmailRow ===== */
+.rh-inbox-row {
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.rh-inbox-row:hover {
+  background: var(--rh-hover-bg-slate-50);
+}
+.rh-inbox-row-unread {
+  background: var(--rh-bg-blue-50-40);
+}
+.rh-inbox-row-unread:hover {
+  background: var(--rh-bg-blue-50);
+}
+.rh-inbox-row-main {
+  min-width: 0;
+}
+.rh-inbox-row-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+.rh-inbox-row-avatar-unread {
+  background: #2563eb;
+}
+.rh-inbox-row-avatar-read {
+  background: var(--rh-bg-slate-500);
+}
+.rh-inbox-row-body {
+  min-width: 0;
+}
+.rh-inbox-row-from {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--rh-text-slate-900);
+}
+.rh-inbox-row-from-unread {
+  font-weight: 700;
+}
+.rh-inbox-row-unread-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: #2563eb;
+  flex-shrink: 0;
+}
+.rh-inbox-row-meta {
+  font-size: 0.75rem;
+  color: var(--rh-text-slate-400);
+}
+.rh-inbox-row-subject {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--rh-text-slate-700);
+  margin-top: 0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rh-inbox-row-subject-unread {
+  font-weight: 700;
+  color: var(--rh-text-slate-900);
+}
+.rh-inbox-row-preview {
+  font-size: 0.75rem;
+  color: var(--rh-text-slate-400);
+  margin-top: 0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rh-inbox-row-hint {
+  font-size: 0.75rem;
+  color: var(--rh-text-blue-600);
+  margin-top: 0.25rem;
+}
+.rh-inbox-row-actions {
+  flex-shrink: 0;
+}
+
+/* ===== EmailReaderDialog ===== */
+.rh-inbox-reader-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+.rh-inbox-reader-body > * + * {
+  margin-top: 1rem;
+}
+.rh-inbox-reader-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+  background: var(--rh-bg-slate-500);
+}
+.rh-inbox-reader-sender-info {
+  min-width: 0;
+}
+.rh-inbox-reader-sender-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--rh-text-slate-900);
+}
+.rh-inbox-reader-sender-meta {
+  font-size: 0.75rem;
+  color: var(--rh-text-slate-400);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rh-inbox-reader-content {
+  font-size: 0.875rem;
+  color: var(--rh-text-slate-700);
+  white-space: pre-line;
+  line-height: 1.6;
+  border-top: 1px solid var(--rh-border-slate-100);
+  padding-top: 1rem;
+}
+.rh-inbox-reader-footer {
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--rh-border-slate-100);
+  flex-shrink: 0;
+}
+
+/* ===== ManualRequestModal ===== */
+.rh-inbox-manual-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+.rh-inbox-manual-body > * + * {
+  margin-top: 1rem;
+}
+.rh-inbox-dropzone {
+  border-radius: 0.75rem;
+  border: 2px dashed var(--rh-dropzone-idle-border);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  background: var(--rh-dropzone-idle-bg);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+.rh-inbox-dropzone:hover {
+  border-color: var(--rh-hover-border-slate-400);
+}
+.rh-inbox-dropzone-active {
+  border-color: #3b82f6;
+  background: var(--rh-bg-blue-50-40);
+}
+.rh-inbox-dropzone-icon {
+  margin-bottom: 0.5rem;
+  color: var(--rh-text-slate-400);
+}
+.rh-inbox-dropzone-active .rh-inbox-dropzone-icon {
+  color: var(--rh-text-blue-600);
+}
+.rh-inbox-dropzone-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--rh-text-slate-700);
+}
+.rh-inbox-dropzone-browse {
+  margin-top: 0.75rem;
+}
+.rh-inbox-hidden-input {
+  display: none;
+}
+.rh-inbox-attachment-list {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.rh-inbox-attachment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--rh-text-slate-700);
+  background: var(--rh-bg-emerald-50);
+  border: 1px solid var(--rh-border-emerald-200);
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.75rem;
+}
+.rh-inbox-attachment-icon {
+  color: var(--rh-text-emerald-600);
+  flex-shrink: 0;
+}
+.rh-inbox-attachment-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rh-inbox-attachment-size {
+  font-size: 0.75rem;
+  color: var(--rh-text-slate-400);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.rh-inbox-manual-footer {
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--rh-border-slate-100);
+  flex-shrink: 0;
+}
+
+/* ===== InboxTab ===== */
+.rh-inbox-folder-tabs {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem;
+  background: var(--rh-bg-slate-100);
+  border-radius: 0.375rem;
+  border: 1px solid var(--rh-border-slate-200);
+  flex-shrink: 0;
+}
+.rh-inbox-folder-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  border: none;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--rh-text-slate-500);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.rh-inbox-folder-tab:hover {
+  color: var(--rh-text-slate-700);
+}
+.rh-inbox-folder-tab-active {
+  background: var(--rh-bg-white);
+  color: var(--rh-text-slate-900);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.rh-inbox-folder-count {
+  font-size: 0.6875rem;
+  color: var(--rh-text-slate-400);
+  font-variant-numeric: tabular-nums;
+}
+.rh-inbox-search {
+  position: relative;
+  width: 100%;
+  max-width: 16rem;
+}
+.rh-inbox-search-icon {
+  position: absolute;
+  left: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--rh-text-slate-400);
+  pointer-events: none;
+}
+input.rh-inbox-search-input {
+  padding: 0 0.75rem 0 2rem;
+}
+.rh-inbox-card {
+  overflow: hidden;
+}
+.rh-inbox-card-count {
+  font-size: 0.875rem;
+  color: var(--rh-text-slate-400);
+}
+.rh-inbox-list > * + * {
+  border-top: 1px solid var(--rh-divide-slate-100);
+}
+.rh-inbox-empty {
+  padding: 2.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--rh-text-slate-400);
+}
+
+/* ===== ProjectMailboxesOverview ===== */
+.rh-inbox-overview-page {
+  padding: 1.5rem;
+}
+.rh-inbox-overview-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--rh-text-slate-900);
+  margin: 0;
+}
+.rh-inbox-overview-subtitle {
+  font-size: 0.875rem;
+  color: var(--rh-text-slate-500);
+  margin: 0.125rem 0 0;
+}
+.rh-inbox-overview-search {
+  margin-bottom: 0.75rem;
+}
+.rh-inbox-table-scroll {
+  overflow-x: auto;
+}
+.rh-inbox-table {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+}
+.rh-inbox-table thead tr {
+  background: var(--rh-bg-slate-50);
+  border-bottom: 1px solid var(--rh-border-slate-200);
+}
+.rh-inbox-table th {
+  padding: 0.625rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: var(--rh-text-slate-500);
+  border-right: 1px solid var(--rh-border-slate-200);
+}
+.rh-inbox-table th:last-child {
+  border-right: none;
+}
+.rh-inbox-table-num {
+  text-align: right;
+}
+.rh-inbox-table tbody tr {
+  border-bottom: 1px solid var(--rh-border-slate-200);
+}
+.rh-inbox-table-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.rh-inbox-table-row:hover {
+  background: var(--rh-bg-blue-50-50);
+}
+.rh-inbox-table-row:hover .rh-inbox-table-name {
+  color: var(--rh-text-blue-700);
+}
+.rh-inbox-table td {
+  padding: 0.75rem 1rem;
+  border-right: 1px solid var(--rh-border-slate-100);
+}
+.rh-inbox-table td:last-child {
+  border-right: none;
+}
+.rh-inbox-table-name {
+  font-weight: 500;
+  color: var(--rh-text-slate-800);
+  transition: color 0.15s ease;
+}
+.rh-inbox-table-address {
+  color: var(--rh-text-slate-500);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+}
+.rh-inbox-table-zero {
+  color: var(--rh-text-slate-300);
+}
+.rh-inbox-table-total {
+  color: var(--rh-text-slate-500);
+  font-variant-numeric: tabular-nums;
+}
+.rh-inbox-table-empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--rh-text-slate-400);
+}
+
+/* ===== ProjectMailboxDetail ===== */
+.rh-inbox-detail-page {
+  padding: 1.5rem;
+}
+.rh-inbox-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--rh-text-slate-500);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1rem;
+  transition: color 0.15s ease;
+}
+.rh-inbox-detail-back:hover {
+  color: var(--rh-hover-text-slate-800);
+}
+.rh-inbox-detail-address {
+  font-size: 0.875rem;
+  color: var(--rh-text-slate-500);
+  margin: 0.125rem 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

@@ -1,0 +1,52 @@
+.rh-kpi-card {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.rh-kpi-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.rh-kpi-icon-blue {
+  background: var(--rh-bg-blue-50);
+  color: var(--rh-text-blue-600);
+}
+.rh-kpi-icon-red {
+  background: var(--rh-bg-red-50);
+  color: var(--rh-text-red-600);
+}
+.rh-kpi-icon-amber {
+  background: var(--rh-bg-amber-50);
+  color: var(--rh-text-amber-600);
+}
+
+.rh-kpi-text {
+  min-width: 0;
+}
+
+.rh-kpi-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--rh-text-slate-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rh-kpi-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--rh-text-slate-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}

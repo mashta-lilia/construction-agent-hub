@@ -1,0 +1,346 @@
+/*
+ * Design tokens ported 1:1 from the original prototype's hand-written
+ * `html.dark ...` override block (REHUB WORK V8.html, head <style>, lines
+ * ~42-134). The prototype had NO light-mode overrides (it relied on
+ * Tailwind CDN's stock palette for light mode) and ONLY overrode specific
+ * utility classes for dark mode -- and those overrides are NOT a uniform
+ * "shift this shade" rule, they vary per utility purpose (e.g. bg-slate-100
+ * and border-slate-100 get different dark hexes even though they share the
+ * same light hex). So tokens below are named per (utility-purpose, color,
+ * shade), matching the source exactly, not collapsed into a generic scale.
+ *
+ * Every shared component in src/components + src/providers should reference
+ * these variables instead of hardcoding hex values, and toggle on the same
+ * `html.dark` class that providers/ThemeProvider.tsx applies to
+ * document.documentElement.
+ */
+
+:root {
+  /* ---- background ---- */
+  --rh-bg-white: #ffffff;
+  --rh-bg-slate-50: #f8fafc;
+  --rh-bg-slate-100: #f1f5f9;
+  --rh-bg-slate-200: #e2e8f0;
+  --rh-bg-slate-300: #cbd5e1;
+  --rh-bg-slate-500: #64748b;
+  --rh-bg-slate-900: #0f172a;
+
+  --rh-bg-blue-50: #eff6ff;
+  --rh-bg-blue-50-40: rgba(239, 246, 255, 0.4);
+  --rh-bg-blue-50-50: rgba(239, 246, 255, 0.5);
+  --rh-bg-blue-50-60: rgba(239, 246, 255, 0.6);
+  --rh-bg-blue-100: #dbeafe;
+
+  --rh-bg-emerald-50: #ecfdf5;
+  --rh-bg-emerald-50-50: rgba(236, 253, 245, 0.5);
+  --rh-bg-emerald-100: #d1fae5;
+
+  --rh-bg-amber-50: #fffbeb;
+  --rh-bg-amber-50-50: rgba(255, 251, 235, 0.5);
+  --rh-bg-amber-100: #fef3c7;
+
+  --rh-bg-red-50: #fef2f2;
+  --rh-bg-red-50-40: rgba(254, 242, 242, 0.4);
+
+  --rh-bg-white-60: rgba(255, 255, 255, 0.6);
+
+  /* ---- hover:background ---- */
+  --rh-hover-bg-slate-800: #1e293b;
+  --rh-hover-bg-slate-50: #f8fafc;
+  --rh-hover-bg-slate-100: #f1f5f9;
+  --rh-hover-bg-slate-200: #e2e8f0;
+  --rh-hover-bg-blue-50-50: rgba(239, 246, 255, 0.5);
+  --rh-hover-bg-blue-50-40: rgba(239, 246, 255, 0.4);
+  --rh-hover-bg-blue-50-30: rgba(239, 246, 255, 0.3);
+  --rh-hover-bg-red-50: #fef2f2;
+  --rh-hover-bg-amber-100: #fef3c7;
+  --rh-hover-bg-amber-50: #fffbeb;
+
+  /* ---- border ---- */
+  --rh-border-slate-100: #f1f5f9;
+  --rh-border-slate-200: #e2e8f0;
+  --rh-border-slate-300: #cbd5e1;
+  --rh-border-amber-300: #fcd34d;
+  --rh-border-red-300: #fca5a5;
+  --rh-border-red-400: #f87171;
+  --rh-border-blue-200: #bfdbfe;
+  --rh-border-emerald-200: #a7f3d0;
+
+  /* ---- hover:border ---- */
+  --rh-hover-border-slate-300: #cbd5e1;
+  --rh-hover-border-slate-400: #94a3b8;
+  --rh-hover-border-blue-300: #93c5fd;
+  --rh-hover-border-blue-400: #60a5fa;
+
+  /* ---- divide ---- */
+  --rh-divide-slate-100: #f1f5f9;
+  --rh-divide-slate-200: #e2e8f0;
+
+  /* ---- ring ---- */
+  --rh-ring-slate-200: #e2e8f0;
+  --rh-ring-slate-300: #cbd5e1;
+  --rh-ring-blue-200: #bfdbfe;
+  --rh-ring-emerald-200: #a7f3d0;
+  --rh-ring-amber-200: #fde68a;
+  --rh-ring-red-200: #fecaca;
+
+  /* ---- text ---- */
+  --rh-text-slate-900: #0f172a;
+  --rh-text-slate-800: #1e293b;
+  --rh-text-slate-700: #334155;
+  --rh-text-slate-600: #475569;
+  --rh-text-slate-500: #64748b;
+  --rh-text-slate-400: #94a3b8;
+  --rh-text-slate-300: #cbd5e1;
+
+  --rh-text-blue-700: #1d4ed8;
+  --rh-text-blue-600: #2563eb;
+  --rh-text-emerald-700: #047857;
+  --rh-text-emerald-800: #065f46;
+  --rh-text-emerald-600: #059669;
+  --rh-text-amber-600: #d97706;
+  --rh-text-amber-700: #b45309;
+  --rh-text-amber-800: #92400e;
+  --rh-text-red-700: #b91c1c;
+  --rh-text-red-800: #991b1b;
+  --rh-text-red-600: #dc2626;
+
+  /* ---- hover:text ---- */
+  --rh-hover-text-slate-600: #475569;
+  --rh-hover-text-slate-700: #334155;
+  --rh-hover-text-slate-800: #1e293b;
+  --rh-hover-text-slate-900: #0f172a;
+  --rh-hover-text-blue-600: #2563eb;
+  --rh-hover-text-blue-700: #1d4ed8;
+
+  /* ---- placeholder ---- */
+  --rh-placeholder-slate-400: #94a3b8;
+  --rh-placeholder-red-500-80: rgba(239, 68, 68, 0.8);
+
+  /* ---- scrollbar ---- */
+  --rh-scrollbar-thumb: #cbd5e1;
+  --rh-scrollbar-thumb-hover: #94a3b8;
+
+  /* ---- dropzone ---- */
+  --rh-dropzone-idle-bg: #f8fafc;
+  --rh-dropzone-idle-border: #cbd5e1;
+
+  /* ---- shimmer skeleton gradient ---- */
+  --rh-shimmer-a: #eef2ff;
+  --rh-shimmer-b: #c7d2fe;
+
+  /* ---- constants: unchanged between themes in the source ---- */
+  --rh-overlay-slate-900-50: rgba(15, 23, 42, 0.5);
+  --rh-focus-ring-blue-30: rgba(59, 130, 246, 0.3);
+  --rh-focus-ring-blue-40: rgba(59, 130, 246, 0.4);
+}
+
+html.dark {
+  color-scheme: dark;
+  background-color: #0b1220;
+
+  /* ---- background ---- */
+  --rh-bg-white: #151d2e;
+  --rh-bg-slate-50: #101827;
+  --rh-bg-slate-100: #0b1220;
+  --rh-bg-slate-200: #1e293b;
+  --rh-bg-slate-300: #334155;
+  --rh-bg-slate-500: #64748b;
+  --rh-bg-slate-900: #334155;
+
+  --rh-bg-blue-50: rgba(59, 130, 246, 0.15);
+  --rh-bg-blue-50-40: rgba(59, 130, 246, 0.12);
+  --rh-bg-blue-50-50: rgba(59, 130, 246, 0.13);
+  --rh-bg-blue-50-60: rgba(59, 130, 246, 0.14);
+  --rh-bg-blue-100: rgba(59, 130, 246, 0.28);
+
+  --rh-bg-emerald-50: rgba(16, 185, 129, 0.15);
+  --rh-bg-emerald-50-50: rgba(16, 185, 129, 0.13);
+  --rh-bg-emerald-100: rgba(16, 185, 129, 0.28);
+
+  --rh-bg-amber-50: rgba(245, 158, 11, 0.15);
+  --rh-bg-amber-50-50: rgba(245, 158, 11, 0.13);
+  --rh-bg-amber-100: rgba(245, 158, 11, 0.28);
+
+  --rh-bg-red-50: rgba(239, 68, 68, 0.15);
+  --rh-bg-red-50-40: rgba(239, 68, 68, 0.12);
+
+  --rh-bg-white-60: rgba(21, 29, 46, 0.72);
+
+  /* ---- hover:background ---- */
+  --rh-hover-bg-slate-800: #475569;
+  --rh-hover-bg-slate-50: #1c2536;
+  --rh-hover-bg-slate-100: #1e293b;
+  --rh-hover-bg-slate-200: #29374d;
+  --rh-hover-bg-blue-50-50: rgba(59, 130, 246, 0.12);
+  --rh-hover-bg-blue-50-40: rgba(59, 130, 246, 0.11);
+  --rh-hover-bg-blue-50-30: rgba(59, 130, 246, 0.1);
+  --rh-hover-bg-red-50: rgba(239, 68, 68, 0.15);
+  --rh-hover-bg-amber-100: rgba(245, 158, 11, 0.28);
+  --rh-hover-bg-amber-50: rgba(245, 158, 11, 0.15);
+
+  /* ---- border ---- */
+  --rh-border-slate-100: #1e293b;
+  --rh-border-slate-200: #29374d;
+  --rh-border-slate-300: #3a4a63;
+  --rh-border-amber-300: #b45309;
+  --rh-border-red-300: #b91c1c;
+  --rh-border-red-400: #ef4444;
+  --rh-border-blue-200: rgba(59, 130, 246, 0.4);
+  --rh-border-emerald-200: rgba(16, 185, 129, 0.4);
+
+  /* ---- hover:border ---- */
+  --rh-hover-border-slate-300: #475569;
+  --rh-hover-border-slate-400: #64748b;
+  --rh-hover-border-blue-300: #3b82f6;
+  --rh-hover-border-blue-400: #60a5fa;
+
+  /* ---- divide ---- */
+  --rh-divide-slate-100: #1e293b;
+  --rh-divide-slate-200: #29374d;
+
+  /* ---- ring ---- */
+  --rh-ring-slate-200: #29374d;
+  --rh-ring-slate-300: #3a4a63;
+  --rh-ring-blue-200: rgba(59, 130, 246, 0.35);
+  --rh-ring-emerald-200: rgba(16, 185, 129, 0.35);
+  --rh-ring-amber-200: rgba(245, 158, 11, 0.35);
+  --rh-ring-red-200: rgba(239, 68, 68, 0.35);
+
+  /* ---- text ---- */
+  --rh-text-slate-900: #f1f5f9;
+  --rh-text-slate-800: #e2e8f0;
+  --rh-text-slate-700: #cbd5e1;
+  --rh-text-slate-600: #94a3b8;
+  --rh-text-slate-500: #94a3b8;
+  --rh-text-slate-400: #64748b;
+  --rh-text-slate-300: #475569;
+
+  --rh-text-blue-700: #93c5fd;
+  --rh-text-blue-600: #60a5fa;
+  --rh-text-emerald-700: #6ee7b7;
+  --rh-text-emerald-800: #a7f3d0;
+  --rh-text-emerald-600: #34d399;
+  --rh-text-amber-600: #fbbf24;
+  --rh-text-amber-700: #fcd34d;
+  --rh-text-amber-800: #fde68a;
+  --rh-text-red-700: #fca5a5;
+  --rh-text-red-800: #fecaca;
+  --rh-text-red-600: #f87171;
+
+  /* ---- hover:text ---- */
+  --rh-hover-text-slate-600: #cbd5e1;
+  --rh-hover-text-slate-700: #e2e8f0;
+  --rh-hover-text-slate-800: #f1f5f9;
+  --rh-hover-text-slate-900: #ffffff;
+  --rh-hover-text-blue-600: #93c5fd;
+  --rh-hover-text-blue-700: #bfdbfe;
+
+  /* ---- placeholder ---- */
+  --rh-placeholder-slate-400: #475569;
+  --rh-placeholder-red-500-80: #fca5a5;
+
+  /* ---- scrollbar ---- */
+  --rh-scrollbar-thumb: #334155;
+  --rh-scrollbar-thumb-hover: #475569;
+
+  /* ---- dropzone ---- */
+  --rh-dropzone-idle-bg: #101827;
+  --rh-dropzone-idle-border: #3a4a63;
+
+  /* ---- shimmer skeleton gradient ---- */
+  --rh-shimmer-a: #1e293b;
+  --rh-shimmer-b: #334155;
+}
+
+/* ===== shared keyframes + animation utility classes (ported from the
+   prototype's head <style> block, lines ~23-36) ===== */
+@keyframes rh-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes rh-scale-in {
+  from {
+    transform: scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes rh-slide-in-panel {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes rh-toast-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes rh-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+@keyframes rh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes rh-shimmer-bar {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.rh-animate-fade-in {
+  animation: rh-fade-in 0.18s ease-out;
+}
+.rh-animate-scale-in {
+  animation: rh-scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rh-animate-slide-in {
+  animation: rh-slide-in-panel 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rh-animate-toast-in {
+  animation: rh-toast-in 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rh-animate-pulse-dot {
+  animation: rh-pulse-dot 1.4s ease-in-out infinite;
+}
+.rh-animate-spin {
+  animation: rh-spin 0.9s linear infinite;
+}
+.rh-animate-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--rh-shimmer-a) 0%,
+    var(--rh-shimmer-b) 50%,
+    var(--rh-shimmer-a) 100%
+  );
+  background-size: 200% 100%;
+  animation: rh-shimmer-bar 1.4s ease-in-out infinite;
+}

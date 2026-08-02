@@ -1,0 +1,32 @@
+.rh-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rh-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--rh-overlay-slate-900-50);
+}
+
+.rh-sheet-panel {
+  position: relative;
+  height: 100%;
+  width: min(100%, 45%);
+  background: var(--rh-bg-white);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .rh-sheet-panel {
+    width: 100%;
+  }
+}
