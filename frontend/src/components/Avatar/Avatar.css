@@ -1,0 +1,10 @@
+.rh-avatar {
+  border-radius: 9999px;
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}

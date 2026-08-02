@@ -1,0 +1,72 @@
+import { useRef, type MouseEvent, type ReactNode } from "react";
+import { cx } from "@/lib/cx";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useI18n } from "@/hooks/useI18n";
+import { X } from "@/components/Icon/icons";
+import "./Dialog.css";
+
+/**
+ * Ported from REHUB WORK V8.html script block 1 (~lines 433-452).
+ * Focus-trapped via `useFocusTrap`, closes on Escape (same hook handles
+ * both). Backdrop mousedown closes; the panel stops propagation so
+ * clicking inside never bubbles to the backdrop handler.
+ */
+export type DialogSize = "sm" | "md" | "lg" | "xl";
+
+export interface DialogProps {
+  open: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  className?: string;
+  size?: DialogSize;
+}
+
+export function Dialog({ open, onClose, children, className, size = "md" }: DialogProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(open, panelRef, onClose);
+
+  if (!open) return null;
+
+  const handleBackdropMouseDown = () => onClose();
+  const stopPropagation = (e: MouseEvent<HTMLDivElement>) => e.stopPropagation();
+
+  return (
+    <div className="rh-dialog-overlay rh-animate-fade-in" onMouseDown={handleBackdropMouseDown}>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        className={cx(
+          "rh-dialog-panel",
+          `rh-dialog-panel-${size}`,
+          "rh-animate-scale-in",
+          className,
+        )}
+        onMouseDown={stopPropagation}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export interface DialogHeaderProps {
+  title: ReactNode;
+  description?: ReactNode;
+  onClose: () => void;
+}
+
+export function DialogHeader({ title, description, onClose }: DialogHeaderProps) {
+  const { t } = useI18n();
+  return (
+    <div className="rh-dialog-header">
+      <div>
+        <div className="rh-dialog-title">{title}</div>
+        {description && <div className="rh-dialog-description">{description}</div>}
+      </div>
+      <button onClick={onClose} aria-label={t("action.close")} className="rh-dialog-close">
+        <X size={16} />
+      </button>
+    </div>
+  );
+}

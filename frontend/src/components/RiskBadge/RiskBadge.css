@@ -1,0 +1,15 @@
+.rh-risk-dot {
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+}
+.rh-risk-dot-green {
+  background: #10b981;
+}
+.rh-risk-dot-amber {
+  background: #f59e0b;
+}
+.rh-risk-dot-red {
+  background: #ef4444;
+}

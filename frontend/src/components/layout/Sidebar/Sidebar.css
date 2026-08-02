@@ -1,0 +1,224 @@
+.rh-sidebar {
+  flex-shrink: 0;
+  height: 100%;
+  background: var(--rh-bg-white);
+  border-right: 1px solid var(--rh-border-slate-200);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease-in-out;
+}
+.rh-sidebar-expanded {
+  width: 15rem;
+}
+.rh-sidebar-collapsed {
+  width: 4rem;
+}
+
+.rh-sidebar-brand {
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--rh-border-slate-200);
+  flex-shrink: 0;
+}
+.rh-sidebar-brand-expanded {
+  gap: 0.625rem;
+  padding: 0 1rem;
+}
+.rh-sidebar-brand-collapsed {
+  justify-content: center;
+  padding: 0 0.5rem;
+}
+
+.rh-sidebar-logo {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rh-sidebar-brand-text {
+  overflow: hidden;
+  transition:
+    max-width 0.3s ease-in-out,
+    opacity 0.3s ease-in-out;
+  max-width: 160px;
+  opacity: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.rh-sidebar-brand-text-collapsed {
+  max-width: 0;
+  opacity: 0;
+  flex: 0 1 auto;
+}
+
+.rh-sidebar-brand-name {
+  font-weight: 700;
+  color: var(--rh-text-slate-900);
+  font-size: 0.8125rem;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.rh-sidebar-brand-tagline {
+  font-size: 0.625rem;
+  color: var(--rh-text-slate-400);
+  margin-top: 0.25rem;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rh-sidebar-mobile-close {
+  flex-shrink: 0;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  border: none;
+  background: none;
+  color: var(--rh-text-slate-400);
+  cursor: pointer;
+  overflow: hidden;
+  max-width: 28px;
+  opacity: 1;
+  transition:
+    max-width 0.3s ease-in-out,
+    opacity 0.3s ease-in-out,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.rh-sidebar-mobile-close:hover {
+  background: var(--rh-hover-bg-slate-100);
+  color: var(--rh-hover-text-slate-600);
+}
+.rh-sidebar-mobile-close-hidden {
+  max-width: 0;
+  opacity: 0;
+  padding: 0;
+}
+@media (min-width: 768px) {
+  .rh-sidebar-mobile-close {
+    display: none;
+  }
+}
+
+.rh-sidebar-collapse-row {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--rh-border-slate-200);
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .rh-sidebar-collapse-row {
+    display: flex;
+  }
+}
+
+.rh-sidebar-collapse-btn {
+  width: 100%;
+  padding: 0.375rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--rh-text-slate-400);
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+.rh-sidebar-collapse-btn:hover {
+  color: var(--rh-hover-text-slate-700);
+  background: var(--rh-hover-bg-slate-100);
+}
+
+.rh-sidebar-nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.rh-sidebar-nav-expanded {
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+}
+.rh-sidebar-nav-collapsed {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.rh-sidebar-footer {
+  padding: 0.75rem;
+  border-top: 1px solid var(--rh-border-slate-200);
+}
+
+.rh-sidebar-profile-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: 0.375rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.rh-sidebar-profile-btn:hover {
+  background: var(--rh-hover-bg-slate-100);
+}
+.rh-sidebar-profile-btn:not(.rh-sidebar-profile-btn-collapsed) {
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+.rh-sidebar-profile-btn-collapsed {
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.rh-sidebar-avatar {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.6875rem;
+  flex-shrink: 0;
+}
+
+.rh-sidebar-profile-text {
+  overflow: hidden;
+  text-align: left;
+  transition:
+    max-width 0.3s ease-in-out,
+    opacity 0.3s ease-in-out;
+  max-width: 140px;
+  opacity: 1;
+  min-width: 0;
+}
+.rh-sidebar-profile-text-collapsed {
+  max-width: 0;
+  opacity: 0;
+}
+
+.rh-sidebar-profile-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--rh-text-slate-800);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rh-sidebar-profile-role {
+  font-size: 0.6875rem;
+  color: var(--rh-text-slate-400);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
