@@ -1,9 +1,10 @@
 import logging
+import os
 from typing import Optional
 
 from dotenv import load_dotenv
 
-from ..exceptions import EnvironmentFileError
+from ..exceptions import EnvironmentFileError, InvalidEnvironmentError
 from .config_factory import ConfigFactory
 
 
@@ -31,6 +32,17 @@ class ConfInfo(ConfigFactory):
     # main.py). Defaults to False so staging/prod fail closed — local dev
     # opts in explicitly via CONF_DEBUG=true.
     DEBUG: bool = False
+
+    def __init__(self):
+        super().__init__()
+        if "*" in self.ORIGINS:
+            # main.py sets allow_credentials=True; combined with a wildcard
+            # origin, CORSMiddleware echoes the caller's Origin back rather
+            # than rejecting it, which makes "*" behave as any-origin-with-
+            # credentials rather than actually restricting anything.
+            raise InvalidEnvironmentError(
+                "CONF_ORIGINS must not include '*' while credentials are allowed"
+            )
 
 
 class SecurityInfo(ConfigFactory):
@@ -76,16 +88,24 @@ class Config:
     def create_example_env():
         """
         Creates an example.env file with placeholder values.
+
+        Never overwrites an existing one: this runs from the `except` branch
+        of `__init__` whenever *any* required variable is missing, which in
+        practice means "someone forgot to export one var locally" — a
+        tracked, hand-commented `.env.example` must not be silently replaced
+        with a bare auto-generated dump because of that.
         """
+        if os.path.exists(".env.example"):
+            return
         params = []
         for attr_name, factory_cls in Config.__annotations__.items():
             params.append(f"# {attr_name}")
-            if not hasattr(factory_cls, "__prefix__"):
-                # Mirror ConfigFactory.__init__'s own fallback: the factory's
-                # own qualname, not Config's.
-                factory_cls.__prefix__ = factory_cls.__qualname__
+            # Mirror ConfigFactory.__init__'s own fallback (the factory's own
+            # qualname, not Config's) without mutating the factory class
+            # itself as a side effect of generating a file.
+            prefix = getattr(factory_cls, "__prefix__", factory_cls.__qualname__)
             for var_name in factory_cls.__annotations__.keys():
-                params.append(f"{factory_cls.__prefix__ + var_name}=")
+                params.append(f"{prefix + var_name}=")
         with open(".env.example", "w") as file:
             file.write("\n".join(params))
         print("Created .env.example file")
