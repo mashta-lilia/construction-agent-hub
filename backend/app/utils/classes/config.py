@@ -7,6 +7,12 @@ from dotenv import load_dotenv
 from ..exceptions import EnvironmentFileError, InvalidEnvironmentError
 from .config_factory import ConfigFactory
 
+# The exact values committed as placeholders in .env.example — if JWT_SECRET
+# is ever left as one of these verbatim, HS256 is brute-forceable offline
+# from a single captured token since the "secret" is public in this repo.
+_PLACEHOLDER_JWT_SECRETS = frozenset({"change-me", "change-me-to-a-random-secret"})
+MIN_JWT_SECRET_LENGTH = 32
+
 
 class DatabaseInfo(ConfigFactory):
     __prefix__ = "DB_"
@@ -50,6 +56,16 @@ class SecurityInfo(ConfigFactory):
     JWT_SECRET: str
     JWT_ACCESS_EXPIRE_MINUTES: int = 20
     JWT_REFRESH_EXPIRE_MINUTES: int = 10080
+
+    def __init__(self):
+        super().__init__()
+        if self.JWT_SECRET in _PLACEHOLDER_JWT_SECRETS or len(self.JWT_SECRET) < MIN_JWT_SECRET_LENGTH:
+            raise InvalidEnvironmentError(
+                f"JWT_SECRET must be a unique random value of at least "
+                f"{MIN_JWT_SECRET_LENGTH} characters, not the committed "
+                f".env.example placeholder — generate one with e.g. "
+                f"`openssl rand -hex 32`"
+            )
 
 
 class AiInfo(ConfigFactory):
