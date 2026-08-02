@@ -1,4 +1,5 @@
 import time
+import uuid
 
 import jwt
 import pytest
@@ -13,7 +14,7 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.utils.exceptions import ValidationAppError
+from app.utils.exceptions import UnauthorizedError, ValidationAppError
 
 
 def test_hash_password_accepts_input_at_the_bcrypt_byte_limit() -> None:
@@ -61,8 +62,8 @@ def test_access_and_refresh_tokens_decode_with_the_right_type_and_expiry() -> No
     access = create_access_token("user-1")
     refresh = create_refresh_token("user-1")
 
-    access_payload = decode_token(access)
-    refresh_payload = decode_token(refresh)
+    access_payload = decode_token(access, expected_type="access")
+    refresh_payload = decode_token(refresh, expected_type="refresh")
 
     assert access_payload["sub"] == "user-1"
     assert access_payload["type"] == "access"
@@ -71,23 +72,58 @@ def test_access_and_refresh_tokens_decode_with_the_right_type_and_expiry() -> No
     assert refresh_payload["exp"] > access_payload["exp"]
 
 
+def test_access_and_refresh_tokens_each_get_a_unique_jti() -> None:
+    a1 = decode_token(create_access_token("user-1"), expected_type="access")
+    a2 = decode_token(create_access_token("user-1"), expected_type="access")
+    r1 = decode_token(create_refresh_token("user-1"), expected_type="refresh")
+
+    assert a1["jti"] != a2["jti"]
+    assert a1["jti"] != r1["jti"]
+    uuid.UUID(r1["jti"])  # doesn't raise — a real UUID, not a placeholder
+
+
+def test_decode_token_rejects_a_refresh_token_presented_as_access() -> None:
+    """The blocker this module exists to close: an access and a refresh token
+    differ only in lifetime (20 min vs. 7 days here), so accepting either one
+    where the other is expected turns a captured refresh token into a
+    week-long session instead of a 20-minute one.
+    """
+    refresh = create_refresh_token("user-1")
+
+    with pytest.raises(UnauthorizedError):
+        decode_token(refresh, expected_type="access")
+
+
+def test_decode_token_rejects_an_access_token_presented_as_refresh() -> None:
+    access = create_access_token("user-1")
+
+    with pytest.raises(UnauthorizedError):
+        decode_token(access, expected_type="refresh")
+
+
 def test_decode_token_rejects_tampered_signature() -> None:
     token = create_access_token("user-1")
 
-    with pytest.raises(jwt.InvalidTokenError):
-        decode_token(token + "tampered")
+    with pytest.raises(UnauthorizedError):
+        decode_token(token + "tampered", expected_type="access")
 
 
 def test_decode_token_rejects_expired_token() -> None:
     now = int(time.time())
     expired = jwt.encode(
-        {"sub": "user-1", "type": "access", "iat": now - 120, "exp": now - 60},
+        {
+            "sub": "user-1",
+            "type": "access",
+            "iat": now - 120,
+            "exp": now - 60,
+            "jti": str(uuid.uuid4()),
+        },
         CONFIG.security.JWT_SECRET,
         algorithm=ALGORITHM,
     )
 
-    with pytest.raises(jwt.ExpiredSignatureError):
-        decode_token(expired)
+    with pytest.raises(UnauthorizedError):
+        decode_token(expired, expected_type="access")
 
 
 def _sign(claims: dict) -> str:
@@ -97,20 +133,34 @@ def _sign(claims: dict) -> str:
     return jwt.encode(claims, CONFIG.security.JWT_SECRET, algorithm=ALGORITHM)
 
 
-@pytest.mark.parametrize("missing", ["sub", "type", "iat", "exp"])
+@pytest.mark.parametrize("missing", ["sub", "type", "iat", "exp", "jti"])
 def test_decode_token_rejects_missing_required_claim(missing: str) -> None:
     now = int(time.time())
-    claims = {"sub": "user-1", "type": "access", "iat": now, "exp": now + 300}
+    claims = {
+        "sub": "user-1",
+        "type": "access",
+        "iat": now,
+        "exp": now + 300,
+        "jti": str(uuid.uuid4()),
+    }
     del claims[missing]
 
-    with pytest.raises(jwt.MissingRequiredClaimError):
-        decode_token(_sign(claims))
+    with pytest.raises(UnauthorizedError):
+        decode_token(_sign(claims), expected_type="access")
 
 
 @pytest.mark.parametrize("token_type", ["admin", "ACCESS", "", "id_token"])
 def test_decode_token_rejects_unsupported_token_type(token_type: str) -> None:
     now = int(time.time())
-    token = _sign({"sub": "user-1", "type": token_type, "iat": now, "exp": now + 300})
+    token = _sign(
+        {
+            "sub": "user-1",
+            "type": token_type,
+            "iat": now,
+            "exp": now + 300,
+            "jti": str(uuid.uuid4()),
+        }
+    )
 
-    with pytest.raises(jwt.InvalidTokenError, match="unsupported token type"):
-        decode_token(token)
+    with pytest.raises(UnauthorizedError):
+        decode_token(token, expected_type="access")
