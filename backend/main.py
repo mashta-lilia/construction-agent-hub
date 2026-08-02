@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import RegisterTortoise
 
-from app.core import CONFIG, DEBUG
+from app.core import CONFIG, DEBUG, REDIS
 from app.database import TORTOISE_ORM
 from app.routers import health_router, routers
 
@@ -18,6 +18,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # `app.state._tortoise_context` unset.
     async with RegisterTortoise(app, config=TORTOISE_ORM, generate_schemas=DEBUG):
         yield
+    # REDIS is a module-level client (app/core), constructed once at import
+    # for every process that imports it — closed here so shutdown doesn't
+    # leak the connection pool or emit unclosed-connection warnings.
+    await REDIS.aclose()
 
 
 def create_app() -> FastAPI:
@@ -43,4 +47,7 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app=app, host="0.0.0.0")
+    # 127.0.0.1, not 0.0.0.0: this path is only for ad-hoc local runs — the
+    # container CMD in Dockerfile invokes uvicorn directly and doesn't go
+    # through here, so this doesn't affect the deployed binding.
+    uvicorn.run(app=app, host="127.0.0.1")
