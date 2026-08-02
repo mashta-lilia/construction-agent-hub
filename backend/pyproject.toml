@@ -27,6 +27,7 @@ tortoise_orm = "app.database.TORTOISE_ORM"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+pythonpath = ["."]
 
 [build-system]
 requires = ["hatchling"]
