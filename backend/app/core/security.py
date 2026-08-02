@@ -5,22 +5,23 @@ module only proves the stateless pieces work.
 """
 
 import time
+import uuid
 from typing import Literal, TypedDict, cast
 
 import bcrypt
 import jwt
 
 from app.core import CONFIG
-from app.utils.exceptions import ValidationAppError
+from app.utils.exceptions import UnauthorizedError, ValidationAppError
 
 ALGORITHM = "HS256"
 
 # bcrypt consumes at most 72 bytes; pyca/bcrypt 5.0 raises rather than
 # truncating silently.
 MAX_PASSWORD_BYTES = 72
+BCRYPT_ROUNDS = 12
 
-TOKEN_TYPES: frozenset[str] = frozenset({"access", "refresh"})
-REQUIRED_CLAIMS = ["sub", "type", "iat", "exp"]
+REQUIRED_CLAIMS = ["sub", "type", "iat", "exp", "jti"]
 
 
 class TokenPayload(TypedDict):
@@ -28,6 +29,11 @@ class TokenPayload(TypedDict):
     type: Literal["access", "refresh"]
     iat: int
     exp: int
+    # Present on every token from the first one issued, not added later: a
+    # revocation/rotation denylist (§10) needs a stable per-token identifier,
+    # and adding jti after real tokens exist would force-invalidate all of
+    # them the moment the system has any.
+    jti: str
 
 
 def hash_password(password: str) -> str:
@@ -46,7 +52,7 @@ def hash_password(password: str) -> str:
         raise ValidationAppError(
             f"password must be at most {MAX_PASSWORD_BYTES} bytes, got {len(encoded)}"
         )
-    return bcrypt.hashpw(encoded, bcrypt.gensalt()).decode()
+    return bcrypt.hashpw(encoded, bcrypt.gensalt(rounds=BCRYPT_ROUNDS)).decode()
 
 
 def verify_password(password: str, password_hash: str) -> bool:
@@ -69,6 +75,7 @@ def create_access_token(subject: str) -> str:
         "type": "access",
         "iat": now,
         "exp": now + 60 * CONFIG.security.JWT_ACCESS_EXPIRE_MINUTES,
+        "jti": str(uuid.uuid4()),
     }
     return jwt.encode(payload, CONFIG.security.JWT_SECRET, algorithm=ALGORITHM)
 
@@ -80,24 +87,37 @@ def create_refresh_token(subject: str) -> str:
         "type": "refresh",
         "iat": now,
         "exp": now + 60 * CONFIG.security.JWT_REFRESH_EXPIRE_MINUTES,
+        "jti": str(uuid.uuid4()),
     }
     return jwt.encode(payload, CONFIG.security.JWT_SECRET, algorithm=ALGORITHM)
 
 
-def decode_token(token: str) -> TokenPayload:
+def decode_token(token: str, expected_type: Literal["access", "refresh"]) -> TokenPayload:
     """Decode and validate a token against the TokenPayload contract.
 
-    A valid signature alone is not enough: without enforcing the claim schema
-    a token missing `sub`/`type`, or carrying an unexpected `type`, would be
-    handed back as a "TokenPayload" it does not actually satisfy.
+    `expected_type` has no default on purpose: an access token and a refresh
+    token differ only in lifetime (20 minutes vs. 7 days here), and the two
+    are not interchangeable — a refresh token accepted as a bearer credential
+    turns a captured value into a week-long session instead of a 20-minute
+    one. Forcing every call site to state which one it wants makes that
+    mistake unrepresentable, rather than relying on callers to remember.
+
+    Every rejection — bad signature, expired, missing claims, or the right
+    kind of token in the wrong place — raises `UnauthorizedError` (401), not
+    a raw `jwt.PyJWTError`. Token expiry happens to every user on a schedule;
+    without this translation it would fall through to the generic 500
+    handler and both look like an outage and drown real errors in tracebacks.
     """
-    payload = jwt.decode(
-        token,
-        CONFIG.security.JWT_SECRET,
-        algorithms=[ALGORITHM],
-        options={"require": REQUIRED_CLAIMS},
-    )
-    token_type = payload["type"]
-    if token_type not in TOKEN_TYPES:
-        raise jwt.InvalidTokenError(f"unsupported token type: {token_type!r}")
+    try:
+        payload = jwt.decode(
+            token,
+            CONFIG.security.JWT_SECRET,
+            algorithms=[ALGORITHM],
+            options={"require": REQUIRED_CLAIMS},
+        )
+    except jwt.PyJWTError as exc:
+        raise UnauthorizedError("invalid or expired token") from exc
+
+    if payload["type"] != expected_type:
+        raise UnauthorizedError(f"expected {expected_type!r} token, got {payload['type']!r}")
     return cast(TokenPayload, payload)
