@@ -32,10 +32,15 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
-    env_file: .env
     environment:
       POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,7 +55,8 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "80:8080"
 
@@ -61,11 +67,19 @@ services:
     restart: unless-stopped
     hostname: mail
     domainname: reconstruction-hub.local
-    env_file: .env
+    # Scoped to exactly what this service needs — it has no business seeing
+    # POSTGRES_PASSWORD, JWT_SECRET, or OPENROUTER_API_KEY, and it's the one
+    # service deliberately reachable from the network.
+    environment:
+      MAIL_SEED_ACCOUNT: ${MAIL_SEED_ACCOUNT}
+      MAIL_SEED_PASSWORD: ${MAIL_SEED_PASSWORD}
     ports:
-      - "25:25"
-      - "587:587"
-      - "993:993"
+      # Loopback only: this is a dev skeleton with a generated, non-secret
+      # seed account (see mail/seed-account.sh) — not something to expose to
+      # the network by default.
+      - "127.0.0.1:25:25"
+      - "127.0.0.1:587:587"
+      - "127.0.0.1:993:993"
     volumes:
       - mail-data:/var/mail
       - mail-state:/var/mail-state
@@ -75,10 +89,21 @@ services:
       context: .
       dockerfile: workers/mail-processing/Dockerfile
     restart: unless-stopped
-    env_file: .env
+    # NOTE: workers import the same shared Settings() as backend (a single
+    # eager pydantic-settings instance validated at import), so they need
+    # the same full environment even though they don't use JWT_SECRET/
+    # OPENROUTER_API_KEY/SMTP_* today. Narrowing this properly needs the
+    # config to validate lazily per-field instead of all-at-once — a
+    # coordinated architecture change, not a quick per-service scope-down.
     environment:
       POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
@@ -90,10 +115,15 @@ services:
       context: .
       dockerfile: workers/document-processing/Dockerfile
     restart: unless-stopped
-    env_file: .env
     environment:
       POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
@@ -105,10 +135,15 @@ services:
       context: .
       dockerfile: workers/report-generation/Dockerfile
     restart: unless-stopped
-    env_file: .env
     environment:
       POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy

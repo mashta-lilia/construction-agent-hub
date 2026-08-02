@@ -9,9 +9,11 @@ class Settings(BaseSettings):
     postgres_dsn: str
     redis_url: str
 
-    # Placeholders so .env.example documents the full future shape;
-    # not consumed by any code yet — S2-INFRA-01 wires these up.
-    jwt_secret: str = "change-me"
+    # No default: nothing reads this yet (S2-INFRA-01 wires it up), but #10
+    # in this stack adds JWT signing — a signing secret that silently falls
+    # back to a value published in this repo is worse than one that fails
+    # to boot. Required now, before anything depends on it.
+    jwt_secret: str
     openrouter_api_key: str = ""
     smtp_host: str = ""
     smtp_port: int = 587
