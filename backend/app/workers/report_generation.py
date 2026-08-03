@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from arq.connections import RedisSettings
 
 from app.core.config import settings
@@ -25,7 +27,7 @@ class WorkerSettings:
     report-generation ticket.
     """
 
-    functions = [noop]
+    functions: ClassVar = [noop]
     on_startup = startup
     on_shutdown = shutdown
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
