@@ -4,6 +4,9 @@ from abc import ABC
 
 from ..exceptions import InvalidEnvironmentError, NoParameterError
 
+_TRUE_VALUES = frozenset({"true", "1", "yes"})
+_FALSE_VALUES = frozenset({"false", "0", "no"})
+
 
 class ConfigFactory(ABC):
     def __init__(self):
@@ -40,13 +43,25 @@ class ConfigFactory(ABC):
                     f"Environment variable '{self.__prefix__ + var_name}' has an invalid value"
                 ) from exc
 
+    @staticmethod
+    def _cast_bool(value: str) -> bool:
+        lowered = value.lower()
+        if lowered in _TRUE_VALUES:
+            return True
+        if lowered in _FALSE_VALUES:
+            return False
+        raise ValueError(
+            f"'{value}' is not a valid boolean "
+            f"(expected one of {sorted(_TRUE_VALUES | _FALSE_VALUES)})"
+        )
+
     def _cast_value(self, value: str, var_type: type):
         if var_type is str:
             return value
         elif var_type is int:
             return int(value)
         elif var_type is bool:
-            return value.lower() in ("true", "1", "yes")
+            return self._cast_bool(value)
         elif var_type in (list[int], tuple[int]):
             return (
                 tuple(map(int, value.split(",")))
@@ -59,12 +74,8 @@ class ConfigFactory(ABC):
             )
         elif var_type in (list[bool], tuple[bool]):
             return (
-                tuple(
-                    map(lambda x: x.lower() in ("true", "1", "yes"), value.split(","))
-                )
+                tuple(map(self._cast_bool, value.split(",")))
                 if var_type is tuple[bool]
-                else list(
-                    map(lambda x: x.lower() in ("true", "1", "yes"), value.split(","))
-                )
+                else list(map(self._cast_bool, value.split(",")))
             )
         raise TypeError(f"Unsupported type: {var_type}")
