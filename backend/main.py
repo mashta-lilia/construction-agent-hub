@@ -34,7 +34,11 @@ def create_app() -> FastAPI:
 
     app = FastAPI(title="Reconstruction Hub API", lifespan=lifespan, redoc_url=None)
 
-    app.add_middleware(RequestIDMiddleware)
+    # Starlette wraps the app in reverse add_middleware order — the last one
+    # added ends up outermost. CORSMiddleware must be added first so
+    # RequestIDMiddleware is outermost and still runs (and sets
+    # X-Request-ID) on OPTIONS preflight requests, which CORSMiddleware
+    # answers directly without ever reaching an inner middleware.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=CONFIG.configuration.ORIGINS,
@@ -42,6 +46,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(RequestIDMiddleware)
 
     def _error_response(request: Request, status_code: int, code: str, message: str) -> JSONResponse:
         """Error responses are built here, not by RequestIDMiddleware: an
