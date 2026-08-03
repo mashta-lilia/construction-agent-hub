@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from tortoise import connections
+from tortoise import get_connection
 
 from app.core import REDIS
 
@@ -18,7 +18,7 @@ async def ready() -> JSONResponse:
     healthy = True
 
     try:
-        await connections.get("default").execute_query("SELECT 1")
+        await get_connection("default").execute_query("SELECT 1")
         checks["database"] = "ok"
     except Exception:
         checks["database"] = "error"

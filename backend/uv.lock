@@ -477,7 +477,7 @@ dependencies = [
     { name = "structlog" },
     { name = "tortoise-orm", extra = ["asyncpg"] },
     { name = "uvicorn", extra = ["standard"] },
-    { name = "uvloop" },
+    { name = "uvloop", marker = "platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'" },
 ]
 
 [package.dev-dependencies]
@@ -499,7 +499,7 @@ requires-dist = [
     { name = "structlog", specifier = ">=25.0" },
     { name = "tortoise-orm", extras = ["asyncpg"], specifier = "==1.1.7" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.52.0" },
-    { name = "uvloop", specifier = ">=0.22.1" },
+    { name = "uvloop", marker = "platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'", specifier = ">=0.22.1" },
 ]
 
 [package.metadata.requires-dev]

@@ -57,6 +57,8 @@ redis==5.3.1
     #   reconstruction-hub-backend
 starlette==1.3.1
     # via fastapi
+structlog==26.1.0
+    # via reconstruction-hub-backend
 tortoise-orm==1.1.7
     # via reconstruction-hub-backend
 typing-extensions==4.16.0
@@ -71,7 +73,7 @@ typing-inspection==0.4.2
     #   pydantic
 uvicorn==0.52.0
     # via reconstruction-hub-backend
-uvloop==0.22.1
+uvloop==0.22.1 ; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
     # via
     #   reconstruction-hub-backend
     #   uvicorn

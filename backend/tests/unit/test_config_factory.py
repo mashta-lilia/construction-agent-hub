@@ -11,8 +11,8 @@ from unittest.mock import patch
 
 import pytest
 
-from app.utils.classes.config import DatabaseInfo, SmtpInfo
-from app.utils.exceptions import NoParameterError
+from app.utils.classes.config import ConfInfo, DatabaseInfo, SmtpInfo
+from app.utils.exceptions import InvalidEnvironmentError, NoParameterError
 
 
 def test_class_level_default_used_when_env_var_missing() -> None:
@@ -54,3 +54,21 @@ def test_annotations_resolve_on_instances_not_just_the_class() -> None:
     with patch.dict(os.environ, env, clear=False):
         info = DatabaseInfo()
     assert info.PORT == 5432
+
+
+@pytest.mark.parametrize("value", ["maybe", "flase", "TRUE "])
+def test_rejects_a_boolean_env_var_with_an_unrecognized_value(value: str) -> None:
+    """Regression: `_cast_value` used to fall back to False for anything
+    that wasn't an explicit true-ish string — a typo like `CONF_DEBUG=flase`
+    silently disabled debug mode instead of failing loudly.
+    """
+    with patch.dict(os.environ, {"CONF_DEBUG": value}, clear=False):
+        with pytest.raises(InvalidEnvironmentError):
+            ConfInfo()
+
+
+def test_accepts_explicit_boolean_env_var_values() -> None:
+    with patch.dict(os.environ, {"CONF_DEBUG": "yes"}, clear=False):
+        assert ConfInfo().DEBUG is True
+    with patch.dict(os.environ, {"CONF_DEBUG": "0"}, clear=False):
+        assert ConfInfo().DEBUG is False
