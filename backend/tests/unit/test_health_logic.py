@@ -32,13 +32,9 @@ async def test_ready_reflects_dependency_health(
     expected_checks: dict[str, str],
 ) -> None:
     fake_connection = _FakeConnection(should_fail=db_fails)
-    fake_connections = type("FakeConnections", (), {"get": lambda self, _name: fake_connection})()
 
     with (
-        # `connections` is a Tortoise context-proxy whose __getattr__ requires
-        # an active TortoiseContext — patching an attribute *on* it triggers
-        # that lookup even to save the original, so replace the whole name.
-        patch("app.routers.health.view.connections", fake_connections),
+        patch("app.routers.health.view.get_connection", return_value=fake_connection),
         patch(
             "app.routers.health.view.REDIS.ping",
             new=AsyncMock(side_effect=ConnectionError if redis_fails else None),

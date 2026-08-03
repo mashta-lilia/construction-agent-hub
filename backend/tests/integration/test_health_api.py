@@ -55,3 +55,22 @@ def test_request_id_header_is_returned_on_success_and_errors() -> None:
 
 async def _boom() -> None:
     raise RuntimeError("kaboom")
+
+
+def test_cors_preflight_still_gets_a_request_id() -> None:
+    """CORSMiddleware answers OPTIONS preflight requests directly, without
+    calling into any middleware nested inside it — RequestIDMiddleware must
+    be the outermost layer (added last) or preflight responses silently lose
+    both the X-Request-ID header and the log correlation context.
+    """
+    with TestClient(app) as client:
+        response = client.options(
+            "/health",
+            headers={
+                "Origin": "http://localhost",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "http://localhost"
+    assert response.headers.get("X-Request-ID")
