@@ -10,7 +10,13 @@ from .config_factory import ConfigFactory
 # The exact values committed as placeholders in .env.example — if JWT_SECRET
 # is ever left as one of these verbatim, HS256 is brute-forceable offline
 # from a single captured token since the "secret" is public in this repo.
-_PLACEHOLDER_JWT_SECRETS = frozenset({"change-me", "change-me-to-a-random-secret"})
+_PLACEHOLDER_JWT_SECRETS = frozenset(
+    {
+        "change-me",
+        "change-me-to-a-random-secret",
+        "local-dev-only-generate-a-real-secret-before-any-real-use",
+    }
+)
 MIN_JWT_SECRET_LENGTH = 32
 
 
