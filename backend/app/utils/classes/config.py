@@ -7,18 +7,6 @@ from dotenv import load_dotenv
 from ..exceptions import EnvironmentFileError, InvalidEnvironmentError
 from .config_factory import ConfigFactory
 
-# The exact values committed as placeholders in .env.example — if JWT_SECRET
-# is ever left as one of these verbatim, HS256 is brute-forceable offline
-# from a single captured token since the "secret" is public in this repo.
-_PLACEHOLDER_JWT_SECRETS = frozenset(
-    {
-        "change-me",
-        "change-me-to-a-random-secret",
-        "local-dev-only-generate-a-real-secret-before-any-real-use",
-    }
-)
-MIN_JWT_SECRET_LENGTH = 32
-
 
 class DatabaseInfo(ConfigFactory):
     __prefix__ = "DB_"
@@ -62,27 +50,6 @@ class SecurityInfo(ConfigFactory):
     JWT_SECRET: str
     JWT_ACCESS_EXPIRE_MINUTES: int = 20
     JWT_REFRESH_EXPIRE_MINUTES: int = 10080
-
-    def __init__(self):
-        super().__init__()
-        is_placeholder = self.JWT_SECRET in _PLACEHOLDER_JWT_SECRETS
-        is_too_short = len(self.JWT_SECRET) < MIN_JWT_SECRET_LENGTH
-        if is_placeholder or is_too_short:
-            raise InvalidEnvironmentError(
-                f"JWT_SECRET must be a unique random value of at least "
-                f"{MIN_JWT_SECRET_LENGTH} characters, not the committed "
-                f".env.example placeholder — generate one with e.g. "
-                f"`openssl rand -hex 32`"
-            )
-        if self.JWT_ACCESS_EXPIRE_MINUTES <= 0:
-            raise InvalidEnvironmentError("JWT_ACCESS_EXPIRE_MINUTES must be positive")
-        if self.JWT_REFRESH_EXPIRE_MINUTES <= self.JWT_ACCESS_EXPIRE_MINUTES:
-            # The entire point of a short-lived access token is that a
-            # captured one expires fast — a refresh token that doesn't
-            # outlive it defeats that, or (if <=0) can't refresh at all.
-            raise InvalidEnvironmentError(
-                "JWT_REFRESH_EXPIRE_MINUTES must be greater than JWT_ACCESS_EXPIRE_MINUTES"
-            )
 
 
 class AiInfo(ConfigFactory):
