@@ -21,7 +21,14 @@ def _security_info_with(secret: str) -> SecurityInfo:
         return SecurityInfo()
 
 
-@pytest.mark.parametrize("placeholder", ["change-me", "change-me-to-a-random-secret"])
+@pytest.mark.parametrize(
+    "placeholder",
+    [
+        "change-me",
+        "change-me-to-a-random-secret",
+        "local-dev-only-generate-a-real-secret-before-any-real-use",
+    ],
+)
 def test_rejects_the_committed_env_example_placeholder(placeholder: str) -> None:
     """The exact strings shipped in .env.example — if one of these is ever
     deployed verbatim, HS256 is offline-brute-forceable from a single
