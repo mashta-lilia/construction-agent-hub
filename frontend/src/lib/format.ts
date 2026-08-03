@@ -3,8 +3,21 @@
  * ~lines 184-186.
  */
 
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
+const NUMBER_FORMAT_LOCALE: Record<string, string> = {
+  en: "en-US",
+  uk: "uk-UA",
+};
+
+/**
+ * Currency stays USD regardless of UI language -- every budget figure in
+ * the seed data and every report template is already USD-denominated
+ * (deliberate: cross-border construction reporting), so this is not an
+ * oversight. Only the NUMBER FORMATTING (grouping separators, symbol
+ * placement) follows the active locale; `locale` is the app's `"en"`/`"uk"`
+ * locale code from `useI18n()`, not a full BCP-47 tag.
+ */
+export function formatCurrency(amount: number, locale: string = "en"): string {
+  return new Intl.NumberFormat(NUMBER_FORMAT_LOCALE[locale] ?? "en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
@@ -19,8 +32,9 @@ export function formatCurrency(amount: number): string {
 export function formatBudget(
   amount: number | null | undefined,
   t: (key: string) => string,
+  locale: string = "en",
 ): string {
-  return amount == null ? t("budget.tbd") : formatCurrency(amount);
+  return amount == null ? t("budget.tbd") : formatCurrency(amount, locale);
 }
 
 export function formatSize(kb: number): string {
