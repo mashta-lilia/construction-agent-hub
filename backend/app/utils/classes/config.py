@@ -65,12 +65,23 @@ class SecurityInfo(ConfigFactory):
 
     def __init__(self):
         super().__init__()
-        if self.JWT_SECRET in _PLACEHOLDER_JWT_SECRETS or len(self.JWT_SECRET) < MIN_JWT_SECRET_LENGTH:
+        is_placeholder = self.JWT_SECRET in _PLACEHOLDER_JWT_SECRETS
+        is_too_short = len(self.JWT_SECRET) < MIN_JWT_SECRET_LENGTH
+        if is_placeholder or is_too_short:
             raise InvalidEnvironmentError(
                 f"JWT_SECRET must be a unique random value of at least "
                 f"{MIN_JWT_SECRET_LENGTH} characters, not the committed "
                 f".env.example placeholder — generate one with e.g. "
                 f"`openssl rand -hex 32`"
+            )
+        if self.JWT_ACCESS_EXPIRE_MINUTES <= 0:
+            raise InvalidEnvironmentError("JWT_ACCESS_EXPIRE_MINUTES must be positive")
+        if self.JWT_REFRESH_EXPIRE_MINUTES <= self.JWT_ACCESS_EXPIRE_MINUTES:
+            # The entire point of a short-lived access token is that a
+            # captured one expires fast — a refresh token that doesn't
+            # outlive it defeats that, or (if <=0) can't refresh at all.
+            raise InvalidEnvironmentError(
+                "JWT_REFRESH_EXPIRE_MINUTES must be greater than JWT_ACCESS_EXPIRE_MINUTES"
             )
 
 

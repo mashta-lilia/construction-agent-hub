@@ -11,11 +11,13 @@ from app.utils.classes.config import SecurityInfo
 from app.utils.exceptions import InvalidEnvironmentError
 
 
-def _security_info_with(secret: str) -> SecurityInfo:
+def _security_info_with(
+    secret: str, access_minutes: str = "20", refresh_minutes: str = "10080"
+) -> SecurityInfo:
     env = {
         "JWT_SECRET": secret,
-        "JWT_ACCESS_EXPIRE_MINUTES": "20",
-        "JWT_REFRESH_EXPIRE_MINUTES": "10080",
+        "JWT_ACCESS_EXPIRE_MINUTES": access_minutes,
+        "JWT_REFRESH_EXPIRE_MINUTES": refresh_minutes,
     }
     with patch.dict(os.environ, env):
         return SecurityInfo()
@@ -46,3 +48,18 @@ def test_rejects_a_secret_shorter_than_the_minimum() -> None:
 def test_accepts_a_sufficiently_long_non_placeholder_secret() -> None:
     info = _security_info_with("a" * 32)
     assert info.JWT_SECRET == "a" * 32
+
+
+@pytest.mark.parametrize("access_minutes", ["0", "-5"])
+def test_rejects_a_non_positive_access_expiry(access_minutes: str) -> None:
+    with pytest.raises(InvalidEnvironmentError):
+        _security_info_with("a" * 32, access_minutes=access_minutes)
+
+
+@pytest.mark.parametrize("refresh_minutes", ["20", "10"])
+def test_rejects_a_refresh_expiry_not_longer_than_access(refresh_minutes: str) -> None:
+    """A refresh token that doesn't outlive the access token defeats the
+    reason for having two token types at all.
+    """
+    with pytest.raises(InvalidEnvironmentError):
+        _security_info_with("a" * 32, access_minutes="20", refresh_minutes=refresh_minutes)
