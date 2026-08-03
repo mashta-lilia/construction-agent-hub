@@ -1,0 +1,18 @@
+server {
+  listen 8080;
+  server_name _;
+  root /usr/share/nginx/html;
+
+  # SPA: усі невідомі шляхи віддають index.html, маршрутизацію робить React Router
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /api/ {
+    # No trailing slash / URI on proxy_pass: nginx forwards the original
+    # request URI unchanged, since FastAPI itself mounts routers under /api.
+    proxy_pass http://backend:8000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}
