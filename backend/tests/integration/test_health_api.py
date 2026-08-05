@@ -8,7 +8,7 @@ import uuid
 import pytest
 from starlette.testclient import TestClient
 
-from main import app
+from main import app, create_app
 
 
 def test_health_and_ready_happy_path() -> None:
@@ -38,34 +38,25 @@ def test_request_id_header_is_returned_on_success_and_errors() -> None:
     `await call_next(...)` re-raise, so RequestIDMiddleware never gets to set
     it and the exception handler has to.
 
-    `/__boom` is added to `app` — the shared module-level singleton every
-    other test in the process also imports — inside a try/finally that
-    always removes it again, otherwise every later test in the process would
-    see a live route that always raises, and outcomes would start depending
-    on file/execution order.
+    `/__boom` is registered on a throwaway `create_app()` instance instead of
+    the shared module-level `app` every other test in the process imports —
+    mutating that singleton left a live always-raising route for every test
+    that ran afterward, with outcomes depending on file/execution order.
     """
-    app.add_api_route("/__boom", _boom, methods=["GET"])
-    try:
-        with TestClient(app, raise_server_exceptions=False) as client:
-            ok = client.get("/health")
-            assert ok.headers.get("X-Request-ID")
+    boom_app = create_app()
+    boom_app.add_api_route("/__boom", _boom, methods=["GET"])
 
-            boom = client.get("/__boom")
-            assert boom.status_code == 500
-            assert boom.headers.get(
-                "X-Request-ID"
-            ), "500 response lost the correlation header"
-            # header and body must agree, otherwise correlation is worse than useless
-            assert boom.headers["X-Request-ID"] == boom.json()["error"]["request_id"]
-    finally:
-        app.router.routes = [
-            route
-            for route in app.router.routes
-            if getattr(route, "path", None) != "/__boom"
-        ]
+    with TestClient(boom_app, raise_server_exceptions=False) as client:
+        ok = client.get("/health")
+        assert ok.headers.get("X-Request-ID")
 
-    with TestClient(app, raise_server_exceptions=False) as client:
-        assert client.get("/__boom").status_code == 404
+        boom = client.get("/__boom")
+        assert boom.status_code == 500
+        assert boom.headers.get(
+            "X-Request-ID"
+        ), "500 response lost the correlation header"
+        # header and body must agree, otherwise correlation is worse than useless
+        assert boom.headers["X-Request-ID"] == boom.json()["error"]["request_id"]
 
     # a well-formed inbound ID is honoured rather than replaced
     with TestClient(app) as client:
