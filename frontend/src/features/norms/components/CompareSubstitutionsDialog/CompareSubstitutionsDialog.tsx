@@ -42,7 +42,7 @@ export function CompareSubstitutionsDialog({
   messages,
   onOpenWizard,
 }: CompareSubstitutionsDialogProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   if (!open) return null;
 
@@ -74,7 +74,7 @@ export function CompareSubstitutionsDialog({
                 <div className="rh-compare-card-cost">
                   <span className="rh-compare-card-cost-label">{t("compare.costImpact")}</span>
                   <span className="rh-compare-card-cost-value">
-                    −{formatCurrency(Math.abs(scenario.costDelta))}
+                    −{formatCurrency(Math.abs(scenario.costDelta), locale)}
                   </span>
                 </div>
                 <Alert variant={variant} className="rh-compare-card-verdict">

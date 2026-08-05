@@ -56,7 +56,7 @@ export function ProjectsTable({
   onNewProject,
   onBulkUpdateProjects,
 }: ProjectsTableProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { density, setDensity } = useDensity();
   const toast = useToast();
   const [statusFilter, setStatusFilter] = useState("all");
@@ -174,7 +174,7 @@ export function ProjectsTable({
     const rows = selectedProjects
       .map(
         (p) =>
-          `<tr><td>${t(p.nameKey)}</td><td>${p.id}</td><td>${t(`status.${p.statusKey}`)}</td><td>${formatBudget(p.budget, t)}</td><td>${t(p.deadlineKey)}</td></tr>`,
+          `<tr><td>${t(p.nameKey)}</td><td>${p.id}</td><td>${t(`status.${p.statusKey}`)}</td><td>${formatBudget(p.budget, t, locale)}</td><td>${t(p.deadlineKey)}</td></tr>`,
       )
       .join("");
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>${t("bulk.export")}</title>
@@ -208,7 +208,7 @@ export function ProjectsTable({
         <KpiCard
           icon={DollarSign}
           label={t("kpi.totalBudget")}
-          value={formatCurrency(totalBudget)}
+          value={formatCurrency(totalBudget, locale)}
           tone="blue"
         />
         <KpiCard icon={Mail} label={t("kpi.openRequests")} value={openRequests} tone="amber" />
@@ -405,7 +405,7 @@ export function ProjectsTable({
                       <StatusBadge statusKey={p.statusKey} />
                     </td>
                     <td className="rh-projects-table-cell rh-projects-table-cell-budget">
-                      {formatBudget(p.budget, t)}
+                      {formatBudget(p.budget, t, locale)}
                     </td>
                     <td className="rh-projects-table-cell rh-projects-table-cell-muted">
                       {t(p.deadlineKey)}

@@ -1,4 +1,4 @@
-import { useRef, type MouseEvent, type ReactNode } from "react";
+import { createContext, useContext, useId, useRef, type MouseEvent, type ReactNode } from "react";
 import { cx } from "@/lib/cx";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useI18n } from "@/hooks/useI18n";
@@ -21,8 +21,18 @@ export interface DialogProps {
   size?: DialogSize;
 }
 
+/**
+ * Shares the title `id` Dialog generates with whatever `DialogHeader` gets
+ * rendered as its child, so the panel's `aria-labelledby` actually points
+ * at something -- without this, `role="dialog" aria-modal="true"` had no
+ * accessible name, so a screen reader announced bare "dialog" on open.
+ */
+const DialogTitleIdCtx = createContext<string | null>(null);
+
 export function Dialog({ open, onClose, children, className, size = "md" }: DialogProps) {
+  const { t } = useI18n();
   const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
   useFocusTrap(open, panelRef, onClose);
 
   if (!open) return null;
@@ -36,6 +46,15 @@ export function Dialog({ open, onClose, children, className, size = "md" }: Dial
         ref={panelRef}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
+        // Fallback for a Dialog rendered without a `DialogHeader`. Every
+        // current consumer renders one under the same condition as `open`, so
+        // `aria-labelledby` does resolve today -- but a dangling idref
+        // computes to an EMPTY accessible name, which is worse than no
+        // attribute at all. Per the accname algorithm `aria-labelledby` still
+        // wins whenever it resolves to text, so this only applies when the
+        // header is genuinely absent.
+        aria-label={t("dialog.fallbackLabel")}
         className={cx(
           "rh-dialog-panel",
           `rh-dialog-panel-${size}`,
@@ -44,7 +63,7 @@ export function Dialog({ open, onClose, children, className, size = "md" }: Dial
         )}
         onMouseDown={stopPropagation}
       >
-        {children}
+        <DialogTitleIdCtx.Provider value={titleId}>{children}</DialogTitleIdCtx.Provider>
       </div>
     </div>
   );
@@ -58,10 +77,13 @@ export interface DialogHeaderProps {
 
 export function DialogHeader({ title, description, onClose }: DialogHeaderProps) {
   const { t } = useI18n();
+  const titleId = useContext(DialogTitleIdCtx);
   return (
     <div className="rh-dialog-header">
       <div>
-        <div className="rh-dialog-title">{title}</div>
+        <div id={titleId ?? undefined} className="rh-dialog-title">
+          {title}
+        </div>
         {description && <div className="rh-dialog-description">{description}</div>}
       </div>
       <button onClick={onClose} aria-label={t("action.close")} className="rh-dialog-close">

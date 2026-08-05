@@ -25,11 +25,11 @@ export interface ReportPreviewProps {
 }
 
 export function ReportPreview({ tpl, project, format }: ReportPreviewProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const rows = [
     { label: t("preview.client"), value: t(project.clientKey) },
-    { label: t("preview.budget"), value: formatBudget(project.budget, t) },
+    { label: t("preview.budget"), value: formatBudget(project.budget, t, locale) },
     { label: t("edit.stage"), value: t("status." + project.statusKey) },
     { label: t("preview.deadline"), value: t(project.deadlineKey) },
   ];

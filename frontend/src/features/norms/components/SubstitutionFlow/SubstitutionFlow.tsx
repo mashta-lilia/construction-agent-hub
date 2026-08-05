@@ -519,7 +519,7 @@ export function SubstitutionFlow({
                 <div className="rh-subflow-cost-bar">
                   <span>{t("compare.costImpact")}</span>
                   <span className="rh-subflow-cost-value">
-                    −{formatCurrency(Math.abs(scenario.costDelta))}
+                    −{formatCurrency(Math.abs(scenario.costDelta), locale)}
                   </span>
                 </div>
                 <Alert variant={verdictVariant}>

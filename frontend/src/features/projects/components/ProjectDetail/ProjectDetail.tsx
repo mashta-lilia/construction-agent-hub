@@ -457,7 +457,7 @@ export function ProjectDetail({
       (r) => r.isSubstitution && r.statusKey === "pending",
     ).length;
     const rows: Array<[string, string]> = [
-      [t("card.budget"), formatBudget(project.budget, t)],
+      [t("card.budget"), formatBudget(project.budget, t, locale)],
       [t("edit.stage"), t(`status.${project.statusKey}`)],
       [t("card.deadline"), t(project.deadlineKey)],
       [t("card.client"), t(project.clientKey)],
@@ -517,11 +517,11 @@ td:first-child{color:#64748b;width:45%;} .meta{margin-top:24px;font-size:11px;co
         <InfoCard
           icon={DollarSign}
           label={t("card.budget")}
-          value={formatBudget(project.budget, t)}
+          value={formatBudget(project.budget, t, locale)}
           sub={
             resolutionState === "approved" && (
               <div className="rh-project-detail-recalculated rh-animate-fade-in">
-                <TrendingUp size={12} /> −{formatCurrency(Math.abs(scenario.costDelta))}{" "}
+                <TrendingUp size={12} /> −{formatCurrency(Math.abs(scenario.costDelta), locale)}{" "}
                 {t("card.recalculated")}
               </div>
             )

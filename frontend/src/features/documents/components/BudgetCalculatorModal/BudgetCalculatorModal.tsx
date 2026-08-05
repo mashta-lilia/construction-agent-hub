@@ -62,7 +62,7 @@ export function BudgetCalculatorModal({
   onUpdateProject,
   setReports,
 }: BudgetCalculatorModalProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const toast = useToast();
   const [step, setStep] = useState(1);
   const [selectedDocIds, setSelectedDocIds] = useState<number[]>([]);
@@ -375,7 +375,7 @@ export function BudgetCalculatorModal({
                                   onClick={() => setSourceRowIdx((cur) => (cur === i ? null : i))}
                                   className="rh-doc-calc-row-link"
                                 >
-                                  {formatCurrency(r.unitPrice)}
+                                  {formatCurrency(r.unitPrice, locale)}
                                 </button>
                               </td>
                               <td className="rh-doc-table-cell rh-doc-table-num">
@@ -388,7 +388,7 @@ export function BudgetCalculatorModal({
                                 </button>
                               </td>
                               <td className="rh-doc-table-cell rh-doc-table-num rh-doc-calc-row-total">
-                                {formatCurrency(r.unitPrice * r.qty)}
+                                {formatCurrency(r.unitPrice * r.qty, locale)}
                               </td>
                             </tr>
                           ))}
@@ -399,15 +399,19 @@ export function BudgetCalculatorModal({
                   <div className="rh-doc-calc-totals">
                     <div className="rh-doc-calc-totals-row">
                       <span>{t("calc.subtotal")}</span>
-                      <span className="rh-doc-calc-totals-value">{formatCurrency(subtotal)}</span>
+                      <span className="rh-doc-calc-totals-value">
+                        {formatCurrency(subtotal, locale)}
+                      </span>
                     </div>
                     <div className="rh-doc-calc-totals-row">
                       <span>{t("calc.riskBuffer")}</span>
-                      <span className="rh-doc-calc-totals-value">{formatCurrency(buffer)}</span>
+                      <span className="rh-doc-calc-totals-value">
+                        {formatCurrency(buffer, locale)}
+                      </span>
                     </div>
                     <div className="rh-doc-calc-totals-row rh-doc-calc-totals-grand">
                       <span>{t("calc.grandTotal")}</span>
-                      <span>{formatCurrency(grandTotal)}</span>
+                      <span>{formatCurrency(grandTotal, locale)}</span>
                     </div>
                   </div>
                 </div>

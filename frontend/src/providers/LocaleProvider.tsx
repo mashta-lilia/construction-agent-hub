@@ -37,6 +37,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     // i18n.language is tracked explicitly: react-i18next re-renders this
     // component on language change, but the `i18n` instance's identity
     // never changes, so it alone would leave `value` stale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [i18n, i18n.language],
   );
 

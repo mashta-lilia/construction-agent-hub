@@ -37,9 +37,21 @@ export const resources = {
   },
 } as const;
 
+const LOCALE_STORAGE_KEY = "rh-locale";
+
+function readInitialLocale(): string {
+  try {
+    return localStorage.getItem(LOCALE_STORAGE_KEY) === "uk" ? "uk" : "en";
+  } catch {
+    return "en";
+  }
+}
+
+const initialLocale = readInitialLocale();
+
 void i18n.use(initReactI18next).init({
   resources,
-  lng: "en",
+  lng: initialLocale,
   fallbackLng: "en",
   defaultNS,
   ns: NAMESPACES,
@@ -63,6 +75,28 @@ void i18n.use(initReactI18next).init({
   // matching the original prototype's `I18N[locale][key]` flat lookup exactly.
   keySeparator: false,
   interpolation: { escapeValue: false },
+});
+
+/**
+ * `<html lang>` drives screen-reader pronunciation and browser
+ * translation prompts. Set it once for the initial language, then keep it
+ * in sync on every change -- react-i18next persists the language choice
+ * internally, but nothing previously wrote it to the DOM or to
+ * localStorage, so a reload always re-announced English even after the
+ * user switched to Ukrainian.
+ */
+if (typeof document !== "undefined") {
+  document.documentElement.lang = initialLocale;
+}
+i18n.on("languageChanged", (lng) => {
+  if (typeof document !== "undefined") {
+    document.documentElement.lang = lng;
+  }
+  try {
+    localStorage.setItem(LOCALE_STORAGE_KEY, lng);
+  } catch {
+    /* ignore persistence errors (e.g. private browsing) */
+  }
 });
 
 export default i18n;
