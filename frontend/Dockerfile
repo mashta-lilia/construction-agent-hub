@@ -10,5 +10,9 @@ RUN npm run build
 # бекенд-сервіс з docker-compose
 FROM nginxinc/nginx-unprivileged:1.27-alpine@sha256:65e3e85dbaed8ba248841d9d58a899b6197106c23cb0ff1a132b7bfe0547e4c0
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# .template, не .conf напряму: базовий образ envsubst'ить
+# /etc/nginx/templates/*.template -> /etc/nginx/conf.d/*.conf при старті
+# контейнера (entrypoint-скрипт 20-envsubst-on-templates.sh) — дає змогу
+# підставити шляхи SSL/TLS сертифікатів на деплої без пересборки образу.
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 EXPOSE 8080
