@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 /**
  * Ported verbatim from REHUB WORK V8.html, script block 1 (~lines
@@ -14,6 +14,14 @@ export function useFocusTrap(
   panelRef: RefObject<HTMLElement | null>,
   onClose: () => void,
 ): void {
+  // Held in a ref rather than the effect's dependency array: every Dialog/
+  // Sheet call site passes `onClose` as a fresh inline arrow, so depending
+  // on it directly re-ran this effect (and its cleanup) on every parent
+  // re-render while still open, yanking focus back to the trigger mid-
+  // interaction instead of only when the dialog actually closes.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     if (!open) return;
     const trigger = document.activeElement as HTMLElement | null;
@@ -28,7 +36,7 @@ export function useFocusTrap(
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key === "Tab") {
@@ -57,5 +65,5 @@ export function useFocusTrap(
       clearTimeout(focusTimer);
       trigger?.focus();
     };
-  }, [open, panelRef, onClose]);
+  }, [open, panelRef]);
 }

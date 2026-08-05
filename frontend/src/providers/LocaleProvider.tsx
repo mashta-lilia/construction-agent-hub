@@ -5,10 +5,10 @@ import { useTranslation } from "react-i18next";
  * Thin wrapper around react-i18next's language state, replacing the
  * original prototype's `LocaleCtx`/`LocaleProvider`
  * (REHUB WORK V8.html, ~lines 144-149) which used its own
- * localStorage-backed useState. react-i18next already persists/detects the
- * language itself (see src/i18n/index.ts); this provider only re-exposes
- * `i18n.language` / `i18n.changeLanguage` under the same
- * `{ locale, setLocale }` shape the rest of the app expects, via
+ * localStorage-backed useState. `i18next-browser-languagedetector` (see
+ * src/i18n/index.ts) now persists/detects the language instead; this
+ * provider only re-exposes `i18n.language` / `i18n.changeLanguage` under
+ * the same `{ locale, setLocale }` shape the rest of the app expects, via
  * `hooks/useI18n.ts`.
  *
  * Do not reimplement a parallel translation dictionary here -- resource

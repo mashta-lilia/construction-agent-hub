@@ -77,6 +77,11 @@ export function NewProjectModal({ open, onClose, onCreate, projects }: NewProjec
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; leadEngineer?: string }>({});
   const inputRef = useRef<HTMLInputElement>(null);
+  // A plain counter, not `Date.now() + i`: two `addFiles` calls within the
+  // same millisecond (e.g. a second drag-drop right after the first) would
+  // otherwise claim overlapping ids, and `removeFile`/`setFileCategory`
+  // both key by this id.
+  const nextFileId = useRef(0);
   const [email, setEmail] = useState("");
   const [emailEdited, setEmailEdited] = useState(false);
   const [emailError, setEmailError] = useState("");
@@ -105,8 +110,8 @@ export function NewProjectModal({ open, onClose, onCreate, projects }: NewProjec
     if (!incoming.length) return;
     setFiles((prev) => [
       ...prev,
-      ...incoming.map((f, i) => ({
-        id: Date.now() + i,
+      ...incoming.map((f) => ({
+        id: nextFileId.current++,
         name: f.name,
         sizeKb: Math.max(1, Math.round(f.size / 1024)),
         category: guessDocCategory(f.name),
