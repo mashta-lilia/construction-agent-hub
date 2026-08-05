@@ -29,3 +29,4 @@ class WorkerSettings:
     on_startup = startup
     on_shutdown = shutdown
     redis_settings = arq_redis_settings()
+    queue_name = "arq:report-generation"

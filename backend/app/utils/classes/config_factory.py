@@ -38,7 +38,7 @@ class ConfigFactory(ABC):
                 )
             try:
                 setattr(self, var_name, self._cast_value(env_value, base_type))
-            except ValueError as exc:
+            except (ValueError, TypeError) as exc:
                 raise InvalidEnvironmentError(
                     f"Environment variable '{self.__prefix__ + var_name}' has an invalid value"
                 ) from exc
@@ -55,6 +55,10 @@ class ConfigFactory(ABC):
             f"(expected one of {sorted(_TRUE_VALUES | _FALSE_VALUES)})"
         )
 
+    @staticmethod
+    def _split_csv(value: str) -> list[str]:
+        return [part.strip() for part in value.split(",") if part.strip()]
+
     def _cast_value(self, value: str, var_type: type):
         if var_type is str:
             return value
@@ -63,19 +67,20 @@ class ConfigFactory(ABC):
         elif var_type is bool:
             return self._cast_bool(value)
         elif var_type in (list[int], tuple[int]):
+            parts = self._split_csv(value)
             return (
-                tuple(map(int, value.split(",")))
+                tuple(map(int, parts))
                 if var_type is tuple[int]
-                else list(map(int, value.split(",")))
+                else list(map(int, parts))
             )
         elif var_type in (list[str], tuple[str]):
-            return (
-                tuple(value.split(",")) if var_type is tuple[str] else value.split(",")
-            )
+            parts = self._split_csv(value)
+            return tuple(parts) if var_type is tuple[str] else parts
         elif var_type in (list[bool], tuple[bool]):
+            parts = self._split_csv(value)
             return (
-                tuple(map(self._cast_bool, value.split(",")))
+                tuple(map(self._cast_bool, parts))
                 if var_type is tuple[bool]
-                else list(map(self._cast_bool, value.split(",")))
+                else list(map(self._cast_bool, parts))
             )
         raise TypeError(f"Unsupported type: {var_type}")

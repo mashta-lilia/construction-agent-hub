@@ -56,16 +56,23 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    """Returns False (rather than raising) for oversized input.
+    """Returns False (never raises) for oversized input or a malformed hash.
 
     hash_password refuses to store anything over the limit, so an oversized
     candidate cannot match any stored hash — and a login attempt must not turn
-    into a 500 just because someone posted a long string.
+    into a 500 just because someone posted a long string. Separately,
+    bcrypt.checkpw raises ValueError for a hash it can't parse (empty, NULL-
+    coerced, or truncated by a fixture/migration mismatch) — that's a
+    hash-format bug, not proof of identity, so it must fail the login rather
+    than crash it.
     """
     encoded = password.encode()
     if len(encoded) > MAX_PASSWORD_BYTES:
         return False
-    return bcrypt.checkpw(encoded, password_hash.encode())
+    try:
+        return bcrypt.checkpw(encoded, password_hash.encode())
+    except ValueError:
+        return False
 
 
 def create_access_token(subject: str) -> str:

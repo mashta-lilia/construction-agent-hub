@@ -12,6 +12,7 @@ from unittest.mock import patch
 import pytest
 
 from app.utils.classes.config import ConfInfo, DatabaseInfo, SmtpInfo
+from app.utils.classes.config_factory import ConfigFactory
 from app.utils.exceptions import InvalidEnvironmentError, NoParameterError
 
 
@@ -72,3 +73,37 @@ def test_accepts_explicit_boolean_env_var_values() -> None:
         assert ConfInfo().DEBUG is True
     with patch.dict(os.environ, {"CONF_DEBUG": "0"}, clear=False):
         assert ConfInfo().DEBUG is False
+
+
+def test_csv_list_entries_are_trimmed_of_surrounding_whitespace() -> None:
+    """Regression: a bare `value.split(",")` left a leading space on every
+    entry after the first (`'http://a, http://b'` -> `[' http://b']`), which
+    then never matches a browser Origin header and CORS silently rejects it.
+    """
+    with patch.dict(
+        os.environ, {"CONF_ORIGINS": "http://a, http://b ,http://c"}, clear=False
+    ):
+        assert ConfInfo().ORIGINS == ["http://a", "http://b", "http://c"]
+
+
+def test_csv_list_drops_empty_segments_from_trailing_comma() -> None:
+    with patch.dict(os.environ, {"CONF_ORIGINS": "http://a,"}, clear=False):
+        assert ConfInfo().ORIGINS == ["http://a"]
+
+
+def test_unsupported_annotation_raises_invalid_environment_error() -> None:
+    """Regression: `_cast_value`'s fallback raised a bare TypeError, which
+    the `except ValueError` around the cast call didn't catch — it escaped
+    as an opaque import-time TypeError instead of the same
+    InvalidEnvironmentError every other bad-config path produces.
+    """
+
+    class _WithUnsupportedField(ConfigFactory):
+        __prefix__ = "UNSUPPORTED_TEST_"
+        TIMEOUT: float
+
+    with (
+        patch.dict(os.environ, {"UNSUPPORTED_TEST_TIMEOUT": "5.0"}, clear=False),
+        pytest.raises(InvalidEnvironmentError),
+    ):
+        _WithUnsupportedField()
