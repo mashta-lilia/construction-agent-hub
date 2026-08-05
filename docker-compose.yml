@@ -1,0 +1,157 @@
+name: reconstruction-hub
+
+services:
+  postgres:
+    image: postgres:17-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:8080"
+
+  mail:
+    build:
+      context: ./mail
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    hostname: mail
+    domainname: reconstruction-hub.local
+    # Scoped to exactly what this service needs — it has no business seeing
+    # POSTGRES_PASSWORD, JWT_SECRET, or OPENROUTER_API_KEY, and it's the one
+    # service deliberately reachable from the network.
+    environment:
+      MAIL_SEED_ACCOUNT: ${MAIL_SEED_ACCOUNT}
+      MAIL_SEED_PASSWORD: ${MAIL_SEED_PASSWORD}
+    ports:
+      # Loopback only: this is a dev skeleton with a generated, non-secret
+      # seed account (see mail/seed-account.sh) — not something to expose to
+      # the network by default.
+      - "127.0.0.1:25:25"
+      - "127.0.0.1:587:587"
+      - "127.0.0.1:993:993"
+    volumes:
+      - mail-data:/var/mail
+      - mail-state:/var/mail-state
+
+  worker-mail-processing:
+    build:
+      context: .
+      dockerfile: workers/mail-processing/Dockerfile
+    restart: unless-stopped
+    # NOTE: workers import the same shared Settings() as backend (a single
+    # eager pydantic-settings instance validated at import), so they need
+    # the same full environment even though they don't use JWT_SECRET/
+    # OPENROUTER_API_KEY/SMTP_* today. Narrowing this properly needs the
+    # config to validate lazily per-field instead of all-at-once — a
+    # coordinated architecture change, not a quick per-service scope-down.
+    environment:
+      POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker-document-processing:
+    build:
+      context: .
+      dockerfile: workers/document-processing/Dockerfile
+    restart: unless-stopped
+    environment:
+      POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker-report-generation:
+    build:
+      context: .
+      dockerfile: workers/report-generation/Dockerfile
+    restart: unless-stopped
+    environment:
+      POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  redis-data:
+  mail-data:
+  mail-state:
