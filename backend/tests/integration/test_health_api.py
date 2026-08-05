@@ -3,6 +3,9 @@ tests/conftest.py (defaults match docker-compose's published dev ports) —
 this is the "real test DB" tier per CLAUDE.md §5, not a mocked unit test.
 """
 
+import uuid
+
+import pytest
 from starlette.testclient import TestClient
 
 from main import app
@@ -64,10 +67,34 @@ def test_request_id_header_is_returned_on_success_and_errors() -> None:
     with TestClient(app, raise_server_exceptions=False) as client:
         assert client.get("/__boom").status_code == 404
 
-    # an inbound ID is honoured rather than replaced
+    # a well-formed inbound ID is honoured rather than replaced
     with TestClient(app) as client:
-        echoed = client.get("/health", headers={"X-Request-ID": "caller-supplied-id"})
-    assert echoed.headers["X-Request-ID"] == "caller-supplied-id"
+        echoed = client.get(
+            "/health", headers={"X-Request-ID": "5f6a6b1e-9b8d-4a2c-8e7a-1a2b3c4d5e6f"}
+        )
+    assert echoed.headers["X-Request-ID"] == "5f6a6b1e-9b8d-4a2c-8e7a-1a2b3c4d5e6f"
+
+
+@pytest.mark.parametrize(
+    "malformed",
+    [
+        "caller-supplied-id",
+        "A" * 8192,
+        "",
+    ],
+)
+def test_malformed_inbound_request_id_is_replaced_not_trusted(malformed: str) -> None:
+    """A caller-controlled header must not become an unbounded/unvalidated
+    correlation ID: an 8KB value would balloon log volume, and a fixed
+    non-UUID value reused across requests would defeat per-request
+    correlation. Anything that isn't a canonical UUID gets replaced with a
+    freshly generated one instead.
+    """
+    with TestClient(app) as client:
+        response = client.get("/health", headers={"X-Request-ID": malformed})
+    returned = response.headers["X-Request-ID"]
+    assert returned != malformed
+    uuid.UUID(returned)  # doesn't raise — a real UUID was generated
 
 
 async def _boom() -> None:
