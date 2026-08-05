@@ -48,7 +48,9 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(RequestIDMiddleware)
 
-    def _error_response(request: Request, status_code: int, code: str, message: str) -> JSONResponse:
+    def _error_response(
+        request: Request, status_code: int, code: str, message: str
+    ) -> JSONResponse:
         """Error responses are built here, not by RequestIDMiddleware: an
         exception makes `await call_next(request)` re-raise, so the middleware
         never reaches the line that sets the header. Without setting it here,
@@ -58,7 +60,9 @@ def create_app() -> FastAPI:
         request_id = getattr(request.state, "request_id", None)
         return JSONResponse(
             status_code=status_code,
-            content={"error": {"code": code, "message": message, "request_id": request_id}},
+            content={
+                "error": {"code": code, "message": message, "request_id": request_id}
+            },
             headers={"X-Request-ID": request_id} if request_id else None,
         )
 
@@ -71,7 +75,15 @@ def create_app() -> FastAPI:
         structlog.get_logger().exception("unhandled_error")
         return _error_response(request, 500, "internal_error", "Internal server error")
 
-    app.include_router(health_router)
+    # Health is mounted twice on purpose. `/api/health` is the documented
+    # endpoint (TASKS.md S2-INFRA-01: no production endpoint sits outside the
+    # `/api` prefix). The unprefixed pair stays as a probe alias so container
+    # health checks do not depend on API versioning — backend/Dockerfile's
+    # HEALTHCHECK and any orchestrator probe keep hitting `/health`. It is
+    # excluded from the OpenAPI schema so the generated API contract (and the
+    # TS types derived from it, CLAUDE.md §6) describes `/api` paths only.
+    app.include_router(health_router, include_in_schema=False)
+    app.include_router(health_router, prefix="/api")
     for router in routers:
         app.include_router(router, prefix="/api")
 

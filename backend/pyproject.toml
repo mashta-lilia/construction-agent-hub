@@ -24,6 +24,9 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
     "httpx2>=0.1",
+    "black>=26.5.1",
+    "ruff>=0.16.1",
+    "mypy>=2.3",
 ]
 
 [tool.tortoise]
@@ -32,6 +35,31 @@ tortoise_orm = "app.database.TORTOISE_ORM"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 pythonpath = ["."]
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+# Kept equal to black's line-length: black is the only formatter in this
+# project, so ruff must never flag a line black itself produced. `ruff format`
+# is deliberately not enabled — two formatters would reformat files after one
+# another (CLAUDE.md §6).
+line-length = 88
+
+[tool.ruff.lint]
+# Deliberately the smallest set CLAUDE.md §6 actually mandates: "E" carries the
+# line-length rule that has to agree with black, "F" catches real defects
+# (unused imports, undefined names), and "I" covers import sorting — which is
+# why isort is not a separate tool here. Widening this (e.g. "UP", "B") would
+# mean rewriting already-merged code to satisfy a style rule no rule document
+# asks for, so it stays a team decision rather than a side effect of this ticket.
+select = ["E", "F", "I"]
+
+[tool.mypy]
+# Lives here rather than in the CI command so the flags are not duplicated
+# between local runs and CI (CLAUDE.md §4.1 step 2). CI passes only the paths:
+# `mypy --config-file backend/pyproject.toml backend/app/rules backend/app/schemas`.
+strict = true
 
 [build-system]
 requires = ["hatchling"]

@@ -17,7 +17,13 @@ class _FakeConnection:
 
 
 @pytest.mark.parametrize(
-    ("db_fails", "redis_fails", "expected_status", "expected_body_status", "expected_checks"),
+    (
+        "db_fails",
+        "redis_fails",
+        "expected_status",
+        "expected_body_status",
+        "expected_checks",
+    ),
     [
         (False, False, 200, "ok", {"database": "ok", "redis": "ok"}),
         (True, False, 503, "error", {"database": "error", "redis": "ok"}),

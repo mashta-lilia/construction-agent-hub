@@ -22,7 +22,9 @@ def test_conf_info_accepts_a_concrete_origin_list() -> None:
         assert ConfInfo().ORIGINS == ["http://a", "http://b"]
 
 
-def test_create_example_env_does_not_overwrite_an_existing_file(tmp_path, monkeypatch) -> None:
+def test_create_example_env_does_not_overwrite_an_existing_file(
+    tmp_path, monkeypatch
+) -> None:
     """Regression: a missing required var used to make Config.__init__'s
     except-branch silently overwrite a tracked, hand-commented .env.example
     with a bare auto-generated dump.

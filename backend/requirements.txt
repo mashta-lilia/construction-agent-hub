@@ -17,6 +17,8 @@ asyncpg==0.31.0
     # via
     #   reconstruction-hub-backend
     #   tortoise-orm
+bcrypt==5.0.0
+    # via reconstruction-hub-backend
 click==8.4.2
     # via
     #   arq
@@ -40,7 +42,9 @@ pydantic==2.13.4
 pydantic-core==2.46.4
     # via pydantic
 pyjwt==2.13.0
-    # via redis
+    # via
+    #   reconstruction-hub-backend
+    #   redis
 pypika-tortoise==0.6.5
     # via tortoise-orm
 python-dotenv==1.2.2

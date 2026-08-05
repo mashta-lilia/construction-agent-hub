@@ -1,0 +1,51 @@
+# Fast local gates, so defects surface before the commit instead of in CI
+# (CLAUDE.md §4.1). pre-commit is bypassable with `--no-verify`, which is
+# exactly why CI repeats these checks — the duplication is deliberate.
+#
+# Install once per clone:  pre-commit install
+#
+# Every hook goes through `uv run --project backend`, so the tool versions come
+# from backend/uv.lock — the same ones CI and a local `uv run` use. Pinning
+# tool versions a second time here would only create a source of drift.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff (backend)
+        entry: uv run --project backend ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
+        files: ^backend/
+        require_serial: true
+
+      - id: black
+        name: black (backend)
+        entry: uv run --project backend black --check --force-exclude
+        language: system
+        types_or: [python, pyi]
+        files: ^backend/
+        require_serial: true
+
+      # Runs against fixed paths rather than the staged files: mypy resolves
+      # module names from package layout, so handing it a single file out of
+      # context reports different errors than the CI invocation does. Same
+      # command as CI step 2 (CLAUDE.md §4.1).
+      - id: mypy
+        name: mypy strict (app/rules, app/schemas)
+        entry: >-
+          uv run --project backend mypy
+          --config-file backend/pyproject.toml
+          backend/app/rules backend/app/schemas
+        language: system
+        pass_filenames: false
+        files: ^backend/(app/(rules|schemas)/|pyproject\.toml$)
+        require_serial: true
+
+# Deliberately NOT here, and still required by CLAUDE.md §4.1 as CI steps:
+#   - pytest and the app/rules coverage gate (steps 3-4) need live Postgres and
+#     Redis, so putting them here would make every commit require Docker;
+#   - the OpenAPI -> TS drift check (step 6) needs the frontend toolchain;
+#   - gitleaks (step 5, CLAUDE.md §10) needs a pinned external hook revision
+#     and a decision on how it gets installed — it belongs with whoever picks
+#     up the CI ticket, and §10 wants it in BOTH pre-commit and CI, so this
+#     file is not finished until that lands.

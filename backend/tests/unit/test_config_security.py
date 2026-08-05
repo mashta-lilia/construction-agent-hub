@@ -62,4 +62,6 @@ def test_rejects_a_refresh_expiry_not_longer_than_access(refresh_minutes: str) -
     reason for having two token types at all.
     """
     with pytest.raises(InvalidEnvironmentError):
-        _security_info_with("a" * 32, access_minutes="20", refresh_minutes=refresh_minutes)
+        _security_info_with(
+            "a" * 32, access_minutes="20", refresh_minutes=refresh_minutes
+        )
