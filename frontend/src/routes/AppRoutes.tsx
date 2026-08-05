@@ -5,6 +5,7 @@ import ProjectDetailPage from "@/pages/ProjectDetailPage";
 import MailPage from "@/pages/MailPage";
 import MailProjectPage from "@/pages/MailProjectPage";
 import ActivityPage from "@/pages/ActivityPage";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 /**
  * Route configuration, per CLAUDE-WORKFLOW.md §2.1 ("уся конфігурація
@@ -23,6 +24,7 @@ export function AppRoutes() {
         <Route path="/mail" element={<MailPage />} />
         <Route path="/mail/:projectId" element={<MailProjectPage />} />
         <Route path="/activity" element={<ActivityPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { cx } from "@/lib/cx";
 import { useI18n } from "@/hooks/useI18n";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
@@ -49,6 +49,12 @@ export function CommandPalette({ open, onClose, onOpenProject }: CommandPaletteP
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   useFocusTrap(open, panelRef, onClose);
+  const listboxId = useId();
+  /* Keyed by flatResults index rather than a plain array so a ref never
+     goes stale across the two separately-mapped project/document
+     sections -- each option's DOM node is looked up by the same `idx`
+     used for aria-selected/active-state below. */
+  const optionRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
   useEffect(() => {
     if (open) {
@@ -98,6 +104,12 @@ export function CommandPalette({ open, onClose, onOpenProject }: CommandPaletteP
     setActiveIndex(0);
   }, [query]);
 
+  useEffect(() => {
+    optionRefs.current[activeIndex]?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex]);
+
+  const optionId = (idx: number) => `${listboxId}-option-${idx}`;
+
   const selectResult = (r: PaletteResult | undefined) => {
     if (!r) return;
     if (r.type === "project") onOpenProject(r.project);
@@ -139,13 +151,22 @@ export function CommandPalette({ open, onClose, onOpenProject }: CommandPaletteP
             onKeyDown={handleKeyDown}
             placeholder={t("palette.placeholder")}
             aria-label={t("palette.placeholder")}
+            role="combobox"
+            aria-expanded={flatResults.length > 0}
+            aria-controls={listboxId}
+            aria-autocomplete="list"
+            aria-activedescendant={flatResults.length > 0 ? optionId(activeIndex) : undefined}
             className="rh-palette-input"
           />
           <button onClick={onClose} aria-label={t("action.close")} className="rh-palette-close">
             <X size={16} />
           </button>
         </div>
-        <div className="rh-palette-results">
+        <div
+          className="rh-palette-results"
+          role={flatResults.length > 0 ? "listbox" : undefined}
+          id={flatResults.length > 0 ? listboxId : undefined}
+        >
           {!q ? (
             <div className="rh-palette-message">{t("palette.hint")}</div>
           ) : flatResults.length === 0 ? (
@@ -162,6 +183,12 @@ export function CommandPalette({ open, onClose, onOpenProject }: CommandPaletteP
                     return (
                       <button
                         key={p.id}
+                        id={optionId(idx)}
+                        role="option"
+                        aria-selected={idx === activeIndex}
+                        ref={(el) => {
+                          optionRefs.current[idx] = el;
+                        }}
                         onClick={() => selectResult({ type: "project", project: p })}
                         onMouseEnter={() => setActiveIndex(idx)}
                         className={cx(
@@ -190,6 +217,12 @@ export function CommandPalette({ open, onClose, onOpenProject }: CommandPaletteP
                     return (
                       <button
                         key={r.project.id + "-" + r.doc.id}
+                        id={optionId(idx)}
+                        role="option"
+                        aria-selected={idx === activeIndex}
+                        ref={(el) => {
+                          optionRefs.current[idx] = el;
+                        }}
                         onClick={() =>
                           selectResult({ type: "document", project: r.project, doc: r.doc })
                         }
