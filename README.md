@@ -30,9 +30,9 @@
 повернутись до варіанту з окремим інстальованим пакетом.
 
 **Стан скелетів:**
-- `backend/` — мінімальний stub: тільки `GET /health` і `GET /ready`
-  (CLAUDE.md §11). Реальна логіка (routers/services/repositories/ai/rules) —
-  окремі задачі, зокрема S2-INFRA-01.
+- `backend/` — мінімальний stub: тільки `GET /api/health` і `GET /api/ready`
+  (CLAUDE.md §11), плюс ті самі два шляхи без префікса як probe-аліас.
+  Реальна логіка (routers/services/repositories/ai/rules) — окремі задачі.
 - `mail/` — тільки build-скелет на базі `docker-mailserver`, без логіки
   провіжину поштових акаунтів по проєктах. `mail/Dockerfile` встановлює
   `mail/seed-account.sh` ентрипоінтом — він генерує один акаунт при старті
@@ -61,8 +61,14 @@ curl -i http://localhost:8000/health  # напряму до backend
 ```
 
 `/api/` на фронтенді проксюється на `backend:8000` (nginx.conf усередині
-`frontend/`), тому `/api/health` ззовні і `/health` усередині backend — той
-самий ендпоінт, просто по різному видимий (nginx знімає префікс `/api/`).
+`frontend/`) **без зрізання префікса** — nginx передає URI як є, бо backend
+сам монтує роутери під `/api`. Тобто `/api/health` ззовні доходить до backend
+теж як `/api/health`.
+
+Непрефіксований `/health` (і `/ready`) лишається окремо як аліас для probe'ів:
+його викликає `HEALTHCHECK` у `backend/Dockerfile` та оркестратор, щоб перевірка
+живучості контейнера не залежала від версіонування API. В OpenAPI-схему аліас
+навмисно не потрапляє, тому згенерований контракт містить лише `/api`-шляхи.
 
 ## Гейти
 
