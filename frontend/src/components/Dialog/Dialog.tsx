@@ -30,6 +30,7 @@ export interface DialogProps {
 const DialogTitleIdCtx = createContext<string | null>(null);
 
 export function Dialog({ open, onClose, children, className, size = "md" }: DialogProps) {
+  const { t } = useI18n();
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   useFocusTrap(open, panelRef, onClose);
@@ -46,6 +47,14 @@ export function Dialog({ open, onClose, children, className, size = "md" }: Dial
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        // Fallback for a Dialog rendered without a `DialogHeader`. Every
+        // current consumer renders one under the same condition as `open`, so
+        // `aria-labelledby` does resolve today -- but a dangling idref
+        // computes to an EMPTY accessible name, which is worse than no
+        // attribute at all. Per the accname algorithm `aria-labelledby` still
+        // wins whenever it resolves to text, so this only applies when the
+        // header is genuinely absent.
+        aria-label={t("dialog.fallbackLabel")}
         className={cx(
           "rh-dialog-panel",
           `rh-dialog-panel-${size}`,

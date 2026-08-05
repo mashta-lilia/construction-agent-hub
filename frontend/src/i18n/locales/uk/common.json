@@ -12,6 +12,7 @@
   "density.comfortable": "Просторі рядки",
   "density.compact": "Компактні рядки",
   "density.label": "Щільність таблиці",
+  "dialog.fallbackLabel": "Діалогове вікно",
   "filter.all": "Усі",
   "filter.clear": "Скинути фільтри",
   "filter.noResults": "Немає результатів за вашими фільтрами.",

@@ -29,6 +29,17 @@ const DEFAULT_TIMEOUT_MS = 15_000;
 export interface ApiRequestInit extends RequestInit {
   /** Aborts the request after this many ms. Ignored if `signal` is set. */
   timeoutMs?: number;
+  /**
+   * Request payload to send as JSON: it is serialized here and
+   * `Content-Type: application/json` is set for it.
+   *
+   * This exists so the content type is never GUESSED. Inferring JSON from
+   * `typeof body === "string"` was wrong for any other string payload (CSV,
+   * XML, a pre-encoded query string) -- it labelled them as JSON. Pass `json`
+   * to send JSON; pass `body` to send anything else and own its
+   * `Content-Type`. Supplying both is a programming error and throws.
+   */
+  json?: unknown;
 }
 
 /**
@@ -41,21 +52,30 @@ export async function apiRequest<TResponse>(
   path: string,
   init: ApiRequestInit = {},
 ): Promise<TResponse | undefined> {
-  const { timeoutMs = DEFAULT_TIMEOUT_MS, signal, headers: initHeaders, ...rest } = init;
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, signal, headers: initHeaders, json, ...rest } = init;
+
+  if (json !== undefined && rest.body != null) {
+    throw new Error("apiRequest: pass either `json` or `body`, not both");
+  }
 
   const headers = new Headers(initHeaders);
-  // Only a JSON *string* body needs this header set for it. A `FormData`
-  // or `URLSearchParams` body must let the browser set its own
-  // Content-Type (multipart needs a generated boundary parameter) --
-  // forcing "application/json" here would strip that and the server
-  // could no longer parse the body.
-  const isJsonBody = typeof rest.body === "string";
-  if (isJsonBody && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+  let body = rest.body;
+  if (json !== undefined) {
+    body = JSON.stringify(json);
+    // A caller-set Content-Type still wins (e.g. a JSON-based vendor media
+    // type). Only the default is supplied here.
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
   }
+  // No Content-Type is inferred for a raw `body`. A `FormData` or
+  // `URLSearchParams` body in particular MUST be left alone so the browser can
+  // set its own (multipart needs a generated boundary parameter); and any other
+  // string payload is the caller's to label.
 
   const response = await fetch(`${BASE_URL}${path}`, {
     ...rest,
+    body,
     headers,
     signal: signal ?? AbortSignal.timeout(timeoutMs),
   });

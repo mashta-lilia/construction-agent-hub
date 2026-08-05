@@ -153,7 +153,11 @@ export function CommandPalette({ open, onClose, onOpenProject }: CommandPaletteP
             aria-label={t("palette.placeholder")}
             role="combobox"
             aria-expanded={flatResults.length > 0}
-            aria-controls={listboxId}
+            // Conditional to match the results container, which only carries
+            // `id={listboxId}` while it actually has the `listbox` role. An
+            // unconditional `aria-controls` pointed at a non-existent id
+            // whenever the palette had no results.
+            aria-controls={flatResults.length > 0 ? listboxId : undefined}
             aria-autocomplete="list"
             aria-activedescendant={flatResults.length > 0 ? optionId(activeIndex) : undefined}
             className="rh-palette-input"

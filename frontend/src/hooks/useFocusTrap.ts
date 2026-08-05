@@ -20,13 +20,19 @@ function isFocusable(el: Element): el is HTMLElement {
 }
 
 /**
- * Stack of currently-open traps, most-recently-opened last. The Escape
- * keydown listener below is registered on `document` by EVERY open
- * trap, so with two overlays open (e.g. a confirm Dialog on top of
- * SubstitutionFlow) a single Escape press fired both handlers and closed
- * both at once. Only the topmost entry's `onClose` runs; an Escape that
- * closes the top overlay leaves the one underneath open, requiring a
- * second press -- matching how a native modal stack behaves.
+ * Stack of currently-open traps, most-recently-opened last. The keydown
+ * listener below is registered on `document` by EVERY open trap, so with two
+ * overlays open (e.g. a confirm Dialog on top of SubstitutionFlow) a single
+ * key press reaches every trap's handler. Only the topmost entry may act:
+ *
+ *  - Escape: one press closes the top overlay and leaves the one underneath
+ *    open, requiring a second press -- matching a native modal stack.
+ *  - Tab: the inner Dialog is rendered inside the outer overlay's JSX, so it
+ *    is a DOM DESCENDANT of the outer panel, and the outer trap's
+ *    `getFocusables()` therefore also matches the inner dialog's controls.
+ *    Both handlers used to run, and the outer one could `preventDefault()`
+ *    and pull focus back to its own first element -- tabbing out of the top
+ *    dialog into the overlay behind it.
  */
 const trapStack: symbol[] = [];
 
@@ -61,8 +67,11 @@ export function useFocusTrap(
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Gate EVERY key, not just Escape: a trap that is not on top must stay
+      // completely inert, or it fights the topmost trap over focus (see the
+      // `trapStack` comment above).
+      if (trapStack[trapStack.length - 1] !== id) return;
       if (e.key === "Escape") {
-        if (trapStack[trapStack.length - 1] !== id) return;
         onCloseRef.current();
         return;
       }

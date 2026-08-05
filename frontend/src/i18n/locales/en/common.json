@@ -12,6 +12,7 @@
   "density.comfortable": "Comfortable rows",
   "density.compact": "Compact rows",
   "density.label": "Table Density",
+  "dialog.fallbackLabel": "Dialog",
   "filter.all": "All",
   "filter.clear": "Clear filters",
   "filter.noResults": "No results match your filters.",
