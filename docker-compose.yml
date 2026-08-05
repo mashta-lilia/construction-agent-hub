@@ -10,6 +10,13 @@ x-backend-env: &backend-env
   REDIS_PORT: "6379"
   REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}
   REDIS_DB: "0"
+  # Documented with defaults in .env.example; the fallback here matches
+  # SecurityInfo's class-level defaults so an unset .env behaves the same
+  # as before — but an operator who does set one (e.g. to shorten the
+  # access-token window after a suspected leak) now actually reaches the
+  # container instead of silently doing nothing.
+  JWT_ACCESS_EXPIRE_MINUTES: ${JWT_ACCESS_EXPIRE_MINUTES:-20}
+  JWT_REFRESH_EXPIRE_MINUTES: ${JWT_REFRESH_EXPIRE_MINUTES:-10080}
 
 services:
   postgres:
@@ -60,7 +67,7 @@ services:
       CONF_DEBUG: ${BACKEND_DEBUG:-false}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-      SMTP_HOST: ${SMTP_HOST}
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST must be set in .env}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
@@ -106,6 +113,10 @@ services:
     volumes:
       - mail-data:/var/mail
       - mail-state:/var/mail-state
+      # Holds postfix-accounts.cf, aliases, and DKIM keys — without this,
+      # seed-account.sh (mail/seed-account.sh) regenerates a blank config
+      # dir on every restart and wipes every project mailbox added since.
+      - mail-config:/tmp/docker-mailserver
 
   worker-mail-processing:
     build:
@@ -122,7 +133,7 @@ services:
       <<: *backend-env
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-      SMTP_HOST: ${SMTP_HOST}
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST must be set in .env}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
@@ -141,7 +152,7 @@ services:
       <<: *backend-env
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-      SMTP_HOST: ${SMTP_HOST}
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST must be set in .env}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
@@ -160,7 +171,7 @@ services:
       <<: *backend-env
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-      SMTP_HOST: ${SMTP_HOST}
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST must be set in .env}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
@@ -175,3 +186,4 @@ volumes:
   redis-data:
   mail-data:
   mail-state:
+  mail-config:
