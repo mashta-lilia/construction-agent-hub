@@ -1,0 +1,46 @@
+.rh-sort-header {
+  padding: 0.625rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  cursor: pointer;
+  user-select: none;
+  border-right: 1px solid var(--rh-border-slate-200);
+  color: var(--rh-text-slate-500);
+  transition: background-color 0.15s ease;
+}
+.rh-sort-header:last-child {
+  border-right: none;
+}
+.rh-sort-header:hover {
+  background: var(--rh-hover-bg-slate-100);
+}
+.rh-sort-header-active {
+  color: var(--rh-text-slate-700);
+}
+.rh-sort-header-left {
+  text-align: left;
+}
+.rh-sort-header-right {
+  text-align: right;
+}
+
+.rh-sort-header-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.rh-sort-header-inner-reverse {
+  flex-direction: row-reverse;
+}
+
+.rh-sort-header-icon {
+  transition: transform 0.15s ease;
+}
+.rh-sort-header-icon-asc {
+  transform: rotate(180deg);
+}
+.rh-sort-header-icon-idle {
+  color: var(--rh-border-slate-300);
+}

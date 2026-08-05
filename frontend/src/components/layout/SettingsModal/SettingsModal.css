@@ -1,0 +1,99 @@
+.rh-settings-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.rh-settings-section-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--rh-text-slate-400);
+  margin-bottom: 0.25rem;
+}
+.rh-settings-section-label-spaced {
+  margin-top: 1.25rem;
+}
+
+.rh-settings-rows {
+  display: flex;
+  flex-direction: column;
+}
+.rh-settings-rows > * + * {
+  border-top: 1px solid var(--rh-divide-slate-100);
+}
+
+.rh-settings-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+}
+
+.rh-settings-row-text {
+  min-width: 0;
+}
+
+.rh-settings-row-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--rh-text-slate-800);
+}
+
+.rh-settings-row-desc {
+  font-size: 0.75rem;
+  color: var(--rh-text-slate-400);
+  margin-top: 0.125rem;
+}
+
+.rh-settings-row-control {
+  flex-shrink: 0;
+  padding-top: 0.125rem;
+}
+
+.rh-settings-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem;
+  background: var(--rh-bg-slate-100);
+  border-radius: 0.375rem;
+  border: 1px solid var(--rh-border-slate-200);
+}
+
+.rh-settings-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.25rem;
+  border: none;
+  background: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--rh-text-slate-400);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.rh-settings-theme-btn:hover {
+  color: var(--rh-hover-text-slate-600);
+}
+.rh-settings-theme-btn-active {
+  background: var(--rh-bg-white);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  color: var(--rh-text-slate-900);
+}
+.rh-settings-theme-btn-active:hover {
+  color: var(--rh-text-slate-900);
+}
+
+.rh-settings-footer {
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--rh-border-slate-100);
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
