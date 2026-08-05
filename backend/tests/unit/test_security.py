@@ -49,6 +49,17 @@ def test_verify_password_returns_false_for_oversized_input() -> None:
     assert verify_password("a" * (MAX_PASSWORD_BYTES + 1), stored) is False
 
 
+@pytest.mark.parametrize("malformed_hash", ["", "notahash", "$2b$04$tooshort"])
+def test_verify_password_returns_false_for_a_malformed_stored_hash(
+    malformed_hash: str,
+) -> None:
+    """Regression: bcrypt.checkpw raises ValueError for a hash it can't
+    parse — an empty/NULL-coerced or truncated password_hash column must
+    fail the login (401) rather than crash it (500).
+    """
+    assert verify_password("any-password", malformed_hash) is False
+
+
 def test_hash_password_produces_a_verifiable_but_different_string() -> None:
     password = "correct horse battery staple"
     hashed = hash_password(password)
