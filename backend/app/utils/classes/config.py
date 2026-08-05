@@ -81,7 +81,8 @@ class SecurityInfo(ConfigFactory):
             # captured one expires fast — a refresh token that doesn't
             # outlive it defeats that, or (if <=0) can't refresh at all.
             raise InvalidEnvironmentError(
-                "JWT_REFRESH_EXPIRE_MINUTES must be greater than JWT_ACCESS_EXPIRE_MINUTES"
+                "JWT_REFRESH_EXPIRE_MINUTES must be greater than "
+                "JWT_ACCESS_EXPIRE_MINUTES"
             )
 
 

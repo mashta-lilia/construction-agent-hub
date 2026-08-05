@@ -40,7 +40,8 @@ class ConfigFactory(ABC):
                 setattr(self, var_name, self._cast_value(env_value, base_type))
             except ValueError as exc:
                 raise InvalidEnvironmentError(
-                    f"Environment variable '{self.__prefix__ + var_name}' has an invalid value"
+                    f"Environment variable '{self.__prefix__ + var_name}' "
+                    "has an invalid value"
                 ) from exc
 
     @staticmethod

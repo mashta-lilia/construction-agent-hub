@@ -92,7 +92,9 @@ def create_refresh_token(subject: str) -> str:
     return jwt.encode(payload, CONFIG.security.JWT_SECRET, algorithm=ALGORITHM)
 
 
-def decode_token(token: str, expected_type: Literal["access", "refresh"]) -> TokenPayload:
+def decode_token(
+    token: str, expected_type: Literal["access", "refresh"]
+) -> TokenPayload:
     """Decode and validate a token against the TokenPayload contract.
 
     `expected_type` has no default on purpose: an access token and a refresh
@@ -119,5 +121,7 @@ def decode_token(token: str, expected_type: Literal["access", "refresh"]) -> Tok
         raise UnauthorizedError("invalid or expired token") from exc
 
     if payload["type"] != expected_type:
-        raise UnauthorizedError(f"expected {expected_type!r} token, got {payload['type']!r}")
+        raise UnauthorizedError(
+            f"expected {expected_type!r} token, got {payload['type']!r}"
+        )
     return cast(TokenPayload, payload)

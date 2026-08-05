@@ -48,7 +48,9 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(RequestIDMiddleware)
 
-    def _error_response(request: Request, status_code: int, code: str, message: str) -> JSONResponse:
+    def _error_response(
+        request: Request, status_code: int, code: str, message: str
+    ) -> JSONResponse:
         """Error responses are built here, not by RequestIDMiddleware: an
         exception makes `await call_next(request)` re-raise, so the middleware
         never reaches the line that sets the header. Without setting it here,
@@ -58,7 +60,9 @@ def create_app() -> FastAPI:
         request_id = getattr(request.state, "request_id", None)
         return JSONResponse(
             status_code=status_code,
-            content={"error": {"code": code, "message": message, "request_id": request_id}},
+            content={
+                "error": {"code": code, "message": message, "request_id": request_id}
+            },
             headers={"X-Request-ID": request_id} if request_id else None,
         )
 

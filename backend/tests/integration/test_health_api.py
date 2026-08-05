@@ -43,7 +43,9 @@ def test_request_id_header_is_returned_on_success_and_errors() -> None:
 
         boom = client.get("/__boom")
         assert boom.status_code == 500
-        assert boom.headers.get("X-Request-ID"), "500 response lost the correlation header"
+        assert boom.headers.get(
+            "X-Request-ID"
+        ), "500 response lost the correlation header"
         # header and body must agree, otherwise correlation is worse than useless
         assert boom.headers["X-Request-ID"] == boom.json()["error"]["request_id"]
 
